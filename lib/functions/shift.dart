@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'package:node_shims/js.dart' as ns;
 
 /**
  * Shift an element from `expr`.
@@ -8,8 +9,8 @@ import '../utils.dart' show utils;
  * @api public
  */
 
- (module.exports = (expr){
+ shift(expr){
    expr = utils.unwrap(expr);
-   return shift(expr.nodes);
- }).raw = true;
+   return ns.shift(expr.nodes);
+ }
 

@@ -1,4 +1,7 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'package:node_shims/js.dart';
+import 'package:stylus_dart/nodes/index.dart' as nodes;
+import 'dart:math' as Math;
 
 /**
  * Returns the transparent version of the given `top` color,
@@ -21,8 +24,7 @@ import '../utils.dart' show utils;
  * @return {RGBA}
  * @api public
  */
-
-module.exports =  transparentify(top, bottom, alpha){
+transparentify(top, bottom, alpha){
   utils.assertColor(top);
   top = top.rgba;
   // Handle default arguments
@@ -35,7 +37,9 @@ module.exports =  transparentify(top, bottom, alpha){
   bottom = bottom.rgba;
   var bestAlpha = ['r', 'g', 'b'].map((channel){
     return (top[channel] - bottom[channel]) / ((0 < (top[channel] - bottom[channel]) ? 255 : 0) - bottom[channel]);
-  }).sort((a, b){return b - a;})[0];
+  }).toList()
+    ..sort((a, b){return b - a;})
+    ..[0];
   if (alpha) {
     utils.assertType(alpha, 'unit', 'alpha');
     if ('%' == alpha.type) {
@@ -48,9 +52,9 @@ module.exports =  transparentify(top, bottom, alpha){
   // Calculate the resulting color
    processChannel(channel) {
     if (0 == bestAlpha) {
-      return bottom[channel]
+      return bottom[channel];
     } else {
-      return bottom[channel] + (top[channel] - bottom[channel]) / bestAlpha
+      return bottom[channel] + (top[channel] - bottom[channel]) / bestAlpha;
     }
   }
   return new nodes.RGBA(

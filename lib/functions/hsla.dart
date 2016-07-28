@@ -21,7 +21,7 @@ import '../nodes/index.dart' as nodes;
  * @api public
  */
 
-hsla(hue, saturation, lightness, alpha){
+hsla(hue, nodes.Unit saturation, nodes.Unit lightness, alpha){
   switch (arguments.length) {
     case 1:
       utils.assertColor(hue);

@@ -3,6 +3,11 @@
  */
 
 import '../visitor/compiler.dart' show Compiler;
+import 'package:node_shims/js.dart';
+import 'package:stylus_dart/nodes/index.dart' as nodes;
+import 'package:stylus_dart/utils.dart' as utils;
+import 'package:node_shims/path.dart';
+import 'dart:core';
 
 /**
  * Return a url() function which resolves urls.
@@ -24,32 +29,51 @@ import '../visitor/compiler.dart' show Compiler;
  * @api public
  */
 
-module.exports = (options) {
+resolver(options) {
   options = or(options, {});
 
-   resolver(url) {
+  var resolver = new _Resolver();
+
+  // Expose options to Evaluator
+  resolver.options = options;
+  resolver.raw = true;
+  return resolver;
+}
+
+class _Resolver {
+  String filename;
+
+  var options;
+
+  var paths;
+
+  bool includeCSS;
+
+  bool raw;
+
+  call(url) {
     // Compile the url
     var compiler = new Compiler(url)
-      , filename = url.filename;
+    , filename = url.filename;
     compiler.isURL = true;
-    url = parse(url.nodes.map((node){
+    url = Uri.parse(url.nodes.map((node){
       return compiler.visit(node);
     }).join(''));
 
-    // Parse literal 
+    // Parse literal
     var literal = new nodes.Literal('url("' + url.href + '")')
-      , path = url.pathname
-      , dest = this.options.dest
-      , tail = ''
-      , res;
+    , path = url.pathname
+    , dest = this.options.dest
+    , tail = ''
+    , res;
 
     // Absolute or hash
     if (url.protocol || !path || '/' == path[0]) return literal;
 
     // Check that file exists
     if (!options.nocheck) {
-      var _paths = options.paths || [];
-      path = require('../utils').lookup(path, _paths.concat(this.paths));
+      var _paths = options.paths ?? [];
+      path = utils.lookup(path, _paths.concat(this.paths));
       if (!path) return literal;
     }
 
@@ -63,16 +87,11 @@ module.exports = (options) {
       dest = dirname(dest);
 
     res = relative(or(dest, dirname(this.filename)), options.nocheck
-      ? join(dirname(filename), path)
-      : path) + tail;
+        ? join([dirname(filename), path])
+        : path) + tail;
 
-    if ('\\' == sep) res = res.replace(new RegExp(r'\\/'), '/');
+    if ('\\' == sep) res = res.replaceAll(new RegExp(r'\\/'), '/');
 
     return new nodes.Literal('url("' + res + '")');
-  };
-
-  // Expose options to Evaluator
-  resolver.options = options;
-  resolver.raw = true;
-  return resolver;
-};
+  }
+}

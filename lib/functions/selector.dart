@@ -1,4 +1,6 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../selector-parser.dart' show SelectorParser;
+import 'package:stylus_dart/parser.dart';
 
 /**
  * Return the current selector or compile
@@ -9,9 +11,9 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-(module.exports =  selector(){
+selector(){
   var stack = this.selectorStack
-    , args = super.slice()[].slice.call(arguments);
+    , args = arguments;
 
   if (1 == args.length) {
     var expr = utils.unwrap(args[0])
@@ -20,7 +22,8 @@ import '../utils.dart' show utils;
     // selector('.a')
     if (1 == len) {
       utils.assertString(expr.first, 'selector');
-      import '../selector-parser.dart' show SelectorParser;
+      var val = expr.first.string
+      , parsed = new SelectorParser(val).parse().val;
 
       if (parsed == val) return val;
 
@@ -44,7 +47,7 @@ import '../utils.dart' show utils;
   }
 
   return stack.length ? utils.compileSelectors(stack).join(',') : '&';
-}).raw = true;
+}
 
  pushToStack(selectors, stack) {
   selectors.forEach((sel) {
@@ -55,8 +58,7 @@ import '../utils.dart' show utils;
 }
 
  parse(selector) {
-  var Parser = new require('../parser')
-    , parser = new Parser(selector)
+  var parser = new Parser(selector)
     , nodes;
   parser.state.add('selector-parts');
   nodes = parser.selector();

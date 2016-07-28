@@ -1,4 +1,4 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
 
 /**
  * Return type of `node`.
@@ -24,7 +24,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  type(node){
+type(node){
   utils.assertPresent(node, 'expression');
   return node.nodeName;
-};
+}

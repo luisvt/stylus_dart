@@ -61,7 +61,7 @@ json(path, local, namePrefix){
 
     for (var key in obj) {
       var val = obj[key];
-      if ('object' == typeof val) {
+      if (val is JsonObject) {
         ret.set(key, convert(val, options));
       } else {
         val = utils.coerce(val);

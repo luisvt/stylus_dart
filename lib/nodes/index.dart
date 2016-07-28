@@ -23,7 +23,7 @@ export 'binop.dart' show BinOp;
 export 'ternary.dart' show Ternary;
 export 'block.dart' show Block;
 export 'unit.dart' show Unit;
-export 'string.dart' show String;
+export 'string.dart' show $String;
 export 'hsla.dart' show HSLA;
 export 'rgba.dart' show RGBA;
 export 'ident.dart' show Ident;

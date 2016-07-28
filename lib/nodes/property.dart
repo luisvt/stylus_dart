@@ -19,84 +19,83 @@ import './node.dart' show Node;
  * @api public
  */
 
-class Property {
-	Property(segs, [expr]) {
-  Node.call(this);
-  this.segments = segs;
-  this.expr = expr;
-	}
-}
+class Property extends Node {
+  var segments;
 
-/**
- * Inherit from `Node.prototype`.
- */
+  var expr;
 
-Property.prototype.__proto__ = Node.prototype;
+  var name;
 
-/**
- * Return a clone of this node.
- * 
- * @return {Node}
- * @api public
- */
+  bool literal;
 
-clone(parent) {
+  Property(segs, [expr]) {
+    this.segments = segs;
+    this.expr = expr;
+  }
 
-  var clone = new Property(this.segments);
-  clone.name = this.name;
-  if (this.literal) clone.literal = this.literal;
-  clone.lineno = this.lineno;
-  clone.column = this.column;
-  clone.filename = this.filename;
-  clone.segments = this.segments.map((node){ return node.clone(parent, clone); });
-  if (this.expr) clone.expr = this.expr.clone(parent, clone);
-  return clone;
-}
+  /**
+   * Return a clone of this node.
+   *
+   * @return {Node}
+   * @api public
+   */
 
-/**
- * Return a JSON representation of this node.
- *
- * @return {Object}
- * @api public
- */
+  clone(parent) {
+    var clone = new Property(this.segments);
+    clone.name = this.name;
+    if (this.literal) clone.literal = this.literal;
+    clone.lineno = this.lineno;
+    clone.column = this.column;
+    clone.filename = this.filename;
+    clone.segments = this.segments.map((node) {
+      return node.clone(parent, clone);
+    });
+    if (this.expr) clone.expr = this.expr.clone(parent, clone);
+    return clone;
+  }
 
-toJSON() {
+  /**
+   * Return a JSON representation of this node.
+   *
+   * @return {Object}
+   * @api public
+   */
 
-  var json = {
-    '__type': 'Property',
-    'segments': this.segments,
-    'name': this.name,
-    'lineno': this.lineno,
-    'column': this.column,
-    'filename': this.filename
-  };
-  if (this.expr) json.expr = this.expr;
-  if (this.literal) json.literal = this.literal;
-  return json;
-}
+  toJSON() {
+    var json = {
+      '__type': 'Property',
+      'segments': this.segments,
+      'name': this.name,
+      'lineno': this.lineno,
+      'column': this.column,
+      'filename': this.filename
+    };
+    if (this.expr) json['expr'] = this.expr;
+    if (this.literal) json['literal'] = this.literal;
+    return json;
+  }
 
-/**
- * Return string representation of this node.
- *
- * @return {String}
- * @api public
- */
+  /**
+   * Return string representation of this node.
+   *
+   * @return {String}
+   * @api public
+   */
 
-toString() {
+  toString() {
+    return 'property(' + this.segments.join('') + ', ' + this.expr + ')';
+  }
 
-  return 'property(' + this.segments.join('') + ', ' + this.expr + ')';
-}
+  /**
+   * Operate on the property expression.
+   *
+   * @param {String} op
+   * @param {Node} right
+   * @return {Node}
+   * @api public
+   */
 
-/**
- * Operate on the property expression.
- *
- * @param {String} op
- * @param {Node} right
- * @return {Node}
- * @api public
- */
-
-operate(op, right, val) {
-
-  return this.expr.operate(op, right, val);
+  operate(op, right, [val]) {
+    return this.expr.operate(op, right, val);
+  }
 }

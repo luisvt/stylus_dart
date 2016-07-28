@@ -1,12 +1,11 @@
-import '../nodes.dart' show nodes;
+import 'package:stylus_dart/nodes/index.dart' as nodes;
 
 /**
  * Output stack trace.
  *
  * @api public
  */
-
-module.exports =  trace(){
+trace(){
   print(this.stack);
-  return nodes.null;
-};
+  return nodes.$null;
+}

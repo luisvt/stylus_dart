@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'package:stylus_dart/nodes/index.dart' as nodes;
 
 /**
  * Unquote the given `string`.
@@ -16,7 +17,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  unquote(string){
+unquote(string){
   utils.assertString(string, 'string');
   return new nodes.Literal(string.string);
-};
+}

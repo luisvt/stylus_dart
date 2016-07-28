@@ -14,6 +14,9 @@ import 'package:node_shims/js.dart';
 import 'package:stylus_dart/functions/extname.dart';
 import 'package:stylus_dart/nodes/index.dart' as nodes;
 import 'package:stylus_dart/utils.dart' as utils;
+import 'package:event_emitter/event_emitter.dart';
+
+EventEmitter events = new EventEmitter();
 
 /**
  * Mime table.
@@ -63,7 +66,7 @@ var encodingTypes = {
 url(options) {
   options = or(options, {});
 
-  var _paths = options.paths ?? [];
+  List _paths = options.paths ?? [];
   var sizeLimit = null != options.limit ? options.limit : 30000;
   var mimes = options.mimes ?? defaultMimes;
 
@@ -83,12 +86,12 @@ url(options) {
     }).join('');
 
     // Parse literal
-    url = parse(url);
+    url = Uri.parse(url);
     var ext = extname(url.pathname)
       , mime = mimes[ext]
       , hash = url.hash ?? ''
       , literal = new nodes.Literal('url("' + url.href + '")')
-      , paths = _paths.concat(this.paths)
+      , paths = _paths..addAll(this.paths)
       , buf
       , result;
 
@@ -119,9 +122,9 @@ url(options) {
 
     if (enc && 'utf8' == enc.first.val.toLowerCase()) {
       encoding = encodingTypes.UTF8;
-      result = buf.toString('utf8').replace(new RegExp(r'\s+/'), ' ')
-        .replace(new RegExp(r'[{}\|\\\^~\[\]`"<>#%]/'), (match) {
-          return '%' + match[0].charCodeAt(0).toString(16).toUpperCase();
+      result = buf.toString('utf8').replaceAll(new RegExp(r'\s+/'), ' ')
+        .replaceAllMapped(new RegExp(r'[{}\|\\\^~\[\]`"<>#%]/'), (match) {
+          return '%' + match[0].codeUnitAt(0).toRadixString(16).toUpperCase();
         }).trim();
     } else {
       result = buf.toString(encoding) + hash;

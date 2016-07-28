@@ -188,7 +188,7 @@ class Parser extends JsonObject {
 
   static var cache;
 
-	Parser(str, options) {
+	Parser([str, options]) {
   var self = this;
   options = or(options, {});
   Parser.cache = or(Parser.cache, Parser.getCache(options));

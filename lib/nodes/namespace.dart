@@ -18,47 +18,40 @@ import './node.dart' show Node;
  * @api public
  */
 
-class Namespace {
-	Namespace(val, prefix) {
-  Node.call(this);
-  this.val = val;
-  this.prefix = prefix;
-	}
-}
+class Namespace extends Node {
+  var prefix;
 
-/**
- * Inherit from `Node.prototype`.
- */
+  Namespace(val, prefix) {
+    this.val = val;
+    this.prefix = prefix;
+  }
 
-Namespace.prototype.__proto__ = Node.prototype;
+  /**
+   * Return @namespace "val".
+   *
+   * @return {String}
+   * @api public
+   */
 
-/**
- * Return @namespace "val".
- *
- * @return {String}
- * @api public
- */
+  toString() {
+    return '@namespace ' + (this.prefix ? this.prefix + ' ' : '') + this.val;
+  }
 
-toString() {
+  /**
+   * Return a JSON representation of this node.
+   *
+   * @return {Object}
+   * @api public
+   */
 
-  return '@namespace ' + (this.prefix ? this.prefix + ' ' : '') + this.val;
-}
-
-/**
- * Return a JSON representation of this node.
- *
- * @return {Object}
- * @api public
- */
-
-toJSON() {
-
-  return {
-    '__type': 'Namespace',
-    'val': this.val,
-    'prefix': this.prefix,
-    'lineno': this.lineno,
-    'column': this.column,
-    'filename': this.filename
-  };
+  toJSON() {
+    return {
+      '__type': 'Namespace',
+      'val': this.val,
+      'prefix': this.prefix,
+      'lineno': this.lineno,
+      'column': this.column,
+      'filename': this.filename
+    };
+  }
 }

@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'package:stylus_dart/nodes/index.dart' as nodes;
 
 /**
  * Assign `type` to the given `unit` or return `unit`'s type.
@@ -9,7 +10,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  unit(unit, type){
+unit(unit, type){
   utils.assertType(unit, 'unit', 'unit');
 
   // Assign
@@ -17,6 +18,6 @@ module.exports =  unit(unit, type){
     utils.assertString(type, 'type');
     return new nodes.Unit(unit.val, type.string);
   } else {
-    return unit.type || '';
+    return unit.type ?? '';
   }
-};
+}

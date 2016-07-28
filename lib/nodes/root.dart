@@ -10,6 +10,7 @@
  */
 
 import './node.dart' show Node;
+import 'package:node_shims/js.dart' as ns;
 
 /**
  * Initialize a new `Root` node.
@@ -18,86 +19,77 @@ import './node.dart' show Node;
  */
 
 class Root extends Node {
-	Root() {
-  this.nodes = [];
-	}
-}
+  List nodes;
 
-/**
- * Inherit from `Node.prototype`.
- */
+  Root() {
+    this.nodes = [];
+  }
 
-Root.prototype.__proto__ = Node.prototype;
+  /**
+   * Push a `node` to this block.
+   *
+   * @param {Node} node
+   * @api public
+   */
 
-/**
- * Push a `node` to this block.
- *
- * @param {Node} node
- * @api public
- */
+  push(node) {
+    this.nodes.add(node);
+  }
 
-push(node) {
+  /**
+   * Unshift a `node` to this block.
+   *
+   * @param {Node} node
+   * @api public
+   */
 
-  this.nodes.add(node);
-}
+  unshift(node) {
+    ns.unshift(this.nodes, node);
+  }
 
-/**
- * Unshift a `node` to this block.
- *
- * @param {Node} node
- * @api public
- */
+  /**
+   * Return a clone of this node.
+   *
+   * @return {Node}
+   * @api public
+   */
 
-unshift(node) {
+  clone([p]) {
+    var clone = new Root();
+    clone.lineno = this.lineno;
+    clone.column = this.column;
+    clone.filename = this.filename;
+    this.nodes.forEach((node) {
+      clone.add(node.clone(clone, clone));
+    });
+    return clone;
+  }
 
-  unshift(this.nodes, node);
-}
+  /**
+   * Return "root".
+   *
+   * @return {String}
+   * @api public
+   */
 
-/**
- * Return a clone of this node.
- *
- * @return {Node}
- * @api public
- */
+  toString() {
+    return '[Root]';
+  }
 
-clone() {
+  /**
+   * Return a JSON representation of this node.
+   *
+   * @return {Object}
+   * @api public
+   */
 
-  var clone = new Root();
-  clone.lineno = this.lineno;
-  clone.column = this.column;
-  clone.filename = this.filename;
-  this.nodes.forEach((node){
-    clone.add(node.clone(clone, clone));
-  });
-  return clone;
-}
-
-/**
- * Return "root".
- *
- * @return {String}
- * @api public
- */
-
-toString() {
-
-  return '[Root]';
-}
-
-/**
- * Return a JSON representation of this node.
- *
- * @return {Object}
- * @api public
- */
-
-toJSON() {
-
-  return {
-    '__type': 'Root',
-    'nodes': this.nodes,
-    'lineno': this.lineno,
-    'column': this.column,
-    'filename': this.filename
-  };
+  toJSON() {
+    return {
+      '__type': 'Root',
+      'nodes': this.nodes,
+      'lineno': this.lineno,
+      'column': this.column,
+      'filename': this.filename
+    };
+  }
 }

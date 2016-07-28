@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'package:stylus_dart/nodes/index.dart' as nodes;
 
 /**
  * Returns string with all matches of `pattern` replaced by `replacement` in given `val`
@@ -10,13 +11,13 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  replace(pattern, replacement, val){
+replace(pattern, replacement, val){
   utils.assertString(pattern, 'pattern');
   utils.assertString(replacement, 'replacement');
   utils.assertString(val, 'val');
-  pattern = new RegExp(pattern.string, 'g');
+  pattern = new RegExp(pattern.string);
   var res = val.string.replace(pattern, replacement.string);
   return val is  nodes.Ident
     ? new nodes.Ident(res)
     : new nodes.String(res);
-};
+}

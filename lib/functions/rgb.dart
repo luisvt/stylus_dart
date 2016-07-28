@@ -1,4 +1,6 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'package:stylus_dart/functions/rgba.dart';
+import 'package:stylus_dart/nodes/index.dart' as nodes;
 
 /**
  * Return a `RGBA` from the r,g,b channels.
@@ -18,7 +20,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  rgb(red, green, blue){
+rgb(red, green, blue){
   switch (arguments.length) {
     case 1:
       utils.assertColor(red);
@@ -35,4 +37,4 @@ module.exports =  rgb(red, green, blue){
         , blue
         , new nodes.Unit(1));
   }
-};
+}

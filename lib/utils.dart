@@ -14,6 +14,7 @@ import './parser.dart' show Parser;
 import 'package:node_shims/path.dart';
 import 'dart:math' as Math;
 import 'package:node_shims/js.dart';
+import 'package:stylus_dart/selector-parser.dart';
 
 /**
  * Check if `path` looks absolute.
@@ -201,7 +202,7 @@ formatException(err, options){
  * @api public
  */
 
-assertType(node, type, param){
+assertType(node, type, [param]){
   assertPresent(node, param);
   if (node.nodeName == type) return;
   var actual = node.nodeName
@@ -220,7 +221,7 @@ assertType(node, type, param){
  * @api public
  */
 
-assertString(node, param){
+assertString(node, [param]){
   assertPresent(node, param);
   switch (node.nodeName) {
     case 'string':
@@ -324,7 +325,7 @@ coerce(val, [raw]){
  * @api private
  */
 coerceArray(val, [raw]){
-  var expr = new nodes.Expression;
+  var expr = new nodes.Expression();
   val.forEach((val){
     expr.add(coerce(val, raw));
   });
@@ -345,7 +346,7 @@ coerceArray(val, [raw]){
  */
 
 coerceObject(obj, raw){
-  var node = raw ? new nodes.Object : new nodes.Expression
+  var node = raw ? new nodes.Object() : new nodes.Expression()
     , val;
 
   for (var key in obj) {
@@ -446,20 +447,20 @@ uniq(arr){
 
 compileSelectors(arr, [leaveHidden]){
   var selectors = []
-    , Parser = require('./selector-parser')
-    , indent = (this.indent || '')
+//    , Parser = require('./selector-parser')
+    , indent = (this.indent ?? '')
     , buf = [];
 
    parse(selector, buf) {
-    var parts = [selector.val]
-      , str = new Parser(parts[0], parents, parts).parse().val
-      , parents = [];
+    var parts = [selector.val],
+        parents = [],
+        str = new SelectorParser(parts[0], parents, parts).parse().val;
 
     if (buf.length) {
       for (var i = 0, len = buf.length; i < len; ++i) {
         parts.add(buf[i]);
         parents.add(str);
-        var child = new Parser(buf[i], parents, parts).parse();
+        var child = new SelectorParser(buf[i], parents, parts).parse();
 
         if (child.nested) {
           str += ' ' + child.val;
@@ -507,6 +508,7 @@ compileSelectors(arr, [leaveHidden]){
  */
 
 parseString(str){
+  var parser, ret;
   try {
     parser = new Parser(str);
     ret = parser.list();

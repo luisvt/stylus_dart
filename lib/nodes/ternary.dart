@@ -20,56 +20,53 @@ import './node.dart' show Node;
  * @api public
  */
 
-class Ternary {
-	Ternary(cond, trueExpr, falseExpr) {
-  Node.call(this);
-  this.cond = cond;
-  this.trueExpr = trueExpr;
-  this.falseExpr = falseExpr;
-	}
-}
+class Ternary extends Node {
+  var cond;
 
-/**
- * Inherit from `Node.prototype`.
- */
+  var trueExpr;
 
-Ternary.prototype.__proto__ = Node.prototype;
+  var falseExpr;
 
-/**
- * Return a clone of this node.
- * 
- * @return {Node}
- * @api public
- */
+  Ternary([cond, trueExpr, falseExpr]) {
+    this.cond = cond;
+    this.trueExpr = trueExpr;
+    this.falseExpr = falseExpr;
+  }
 
-clone(parent) {
+  /**
+   * Return a clone of this node.
+   *
+   * @return {Node}
+   * @api public
+   */
 
-  var clone = new Ternary();
-  clone.cond = this.cond.clone(parent, clone);
-  clone.trueExpr = this.trueExpr.clone(parent, clone);
-  clone.falseExpr = this.falseExpr.clone(parent, clone);
-  clone.lineno = this.lineno;
-  clone.column = this.column;
-  clone.filename = this.filename;
-  return clone;
-}
+  clone(parent) {
+    var clone = new Ternary();
+    clone.cond = this.cond.clone(parent, clone);
+    clone.trueExpr = this.trueExpr.clone(parent, clone);
+    clone.falseExpr = this.falseExpr.clone(parent, clone);
+    clone.lineno = this.lineno;
+    clone.column = this.column;
+    clone.filename = this.filename;
+    return clone;
+  }
 
-/**
- * Return a JSON representation of this node.
- *
- * @return {Object}
- * @api public
- */
+  /**
+   * Return a JSON representation of this node.
+   *
+   * @return {Object}
+   * @api public
+   */
 
-toJSON() {
-
-  return {
-    '__type': 'Ternary',
-    'cond': this.cond,
-    'trueExpr': this.trueExpr,
-    'falseExpr': this.falseExpr,
-    'lineno': this.lineno,
-    'column': this.column,
-    'filename': this.filename
-  };
+  toJSON() {
+    return {
+      '__type': 'Ternary',
+      'cond': this.cond,
+      'trueExpr': this.trueExpr,
+      'falseExpr': this.falseExpr,
+      'lineno': this.lineno,
+      'column': this.column,
+      'filename': this.filename
+    };
+  }
 }

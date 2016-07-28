@@ -7,4 +7,4 @@ dependencies:
   path: any
   json_object: any
   crypto: any
-  dart_event_emitter: any
+  event_emitter: any

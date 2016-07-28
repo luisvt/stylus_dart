@@ -41,7 +41,7 @@ class Normalizer extends Visitor {
 
   int rootIndex;
 
-  Normalizer(root, options) : super(root) {
+  Normalizer(root, [options]) : super(root) {
     options = or(options, {});
     this.hoist = options['hoist atrules'];
     this.stack = [];
@@ -61,10 +61,10 @@ class Normalizer extends Visitor {
 
     if (this.hoist) {
       // hoist @import
-      if (this.imports.isNotEmpty) ret.nodes = this.imports.concat(ret.nodes);
+      if (this.imports.isNotEmpty) ret.nodes = concat([this.imports, ret.nodes]);
 
       // hoist @charset
-      if (truthy(this.charset)) ret.nodes = [this.charset].concat(ret.nodes);
+      if (truthy(this.charset)) ret.nodes = concat([[this.charset], ret.nodes]);
     }
 
     return ret;

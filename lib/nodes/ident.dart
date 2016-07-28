@@ -28,6 +28,10 @@ class Ident extends Node {
 
   var mixin;
 
+  var property;
+
+  var rest;
+
   Ident(name, [val, mixin]) {
 //  Node.call(this);
     this.name = name;
@@ -145,13 +149,14 @@ class Ident extends Node {
     switch (op) {
       case '-':
         if ('unit' == val.nodeName) {
-          var expr = new nodes.Expression;
+          var expr = new nodes.Expression();
           val = val.clone();
           val.val = -val.val;
           expr.add(this);
           expr.add(val);
           return expr;
         }
+        break;
       case '+':
         return new nodes.Ident(this.string + this
             .coerce(val)

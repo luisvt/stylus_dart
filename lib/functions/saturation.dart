@@ -1,4 +1,6 @@
-import '../nodes.dart' show nodes;
+import 'package:stylus_dart/functions/component.dart';
+import 'package:stylus_dart/nodes/index.dart' as nodes;
+import 'package:stylus_dart/functions/hsla.dart';
 
 /**
  * Return the saturation component of the given `color`,
@@ -18,7 +20,7 @@ import '../nodes.dart' show nodes;
  * @api public
  */
 
-module.exports =  saturation(color, value){
+saturation(color, value){
   if (value) {
     var hslaColor = color.hsla;
     return hsla(
@@ -26,8 +28,8 @@ module.exports =  saturation(color, value){
       value,
       new nodes.Unit(hslaColor.l),
       new nodes.Unit(hslaColor.a)
-    )
+    );
   }
   return component(color, new nodes.String('saturation'));
-};
+}
 

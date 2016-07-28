@@ -19,69 +19,63 @@ import './node.dart' show Node;
  * @api public
  */
 
-class Member {
-	Member(left, right) {
-  Node.call(this);
-  this.left = left;
-  this.right = right;
-	}
-}
+class Member extends Node {
+  var left;
 
-/**
- * Inherit from `Node.prototype`.
- */
+  var right;
 
-Member.prototype.__proto__ = Node.prototype;
+  Member([left, right]) {
+    this.left = left;
+    this.right = right;
+  }
 
-/**
- * Return a clone of this node.
- *
- * @return {Node}
- * @api public
- */
+  /**
+   * Return a clone of this node.
+   *
+   * @return {Node}
+   * @api public
+   */
 
-clone(parent) {
+  clone(parent) {
+    var clone = new Member();
+    clone.left = this.left.clone(parent, clone);
+    clone.right = this.right.clone(parent, clone);
+    if (this.val) clone.val = this.val.clone(parent, clone);
+    clone.lineno = this.lineno;
+    clone.column = this.column;
+    clone.filename = this.filename;
+    return clone;
+  }
 
-  var clone = new Member;
-  clone.left = this.left.clone(parent, clone);
-  clone.right = this.right.clone(parent, clone);
-  if (this.val) clone.val = this.val.clone(parent, clone);
-  clone.lineno = this.lineno;
-  clone.column = this.column;
-  clone.filename = this.filename;
-  return clone;
-}
+  /**
+   * Return a JSON representation of this node.
+   *
+   * @return {Object}
+   * @api public
+   */
 
-/**
- * Return a JSON representation of this node.
- *
- * @return {Object}
- * @api public
- */
+  toJSON() {
+    var json = {
+      '__type': 'Member',
+      'left': this.left,
+      'right': this.right,
+      'lineno': this.lineno,
+      'column': this.column,
+      'filename': this.filename
+    };
+    if (this.val) json.val = this.val;
+    return json;
+  }
 
-toJSON() {
+  /**
+   * Return a string representation of this node.
+   *
+   * @return {String}
+   * @api public
+   */
 
-  var json = {
-    '__type': 'Member',
-    'left': this.left,
-    'right': this.right,
-    'lineno': this.lineno,
-    'column': this.column,
-    'filename': this.filename
-  };
-  if (this.val) json.val = this.val;
-  return json;
-}
-
-/**
- * Return a string representation of this node.
- *
- * @return {String}
- * @api public
- */
-
-toString() {
-
-  return this.left.toString()
-    + '.' + this.right.toString();
+  toString() {
+    return this.left.toString()
+        + '.' + this.right.toString();
+  }
 }

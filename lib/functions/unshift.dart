@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'package:node_shims/js.dart' as ns;
 
 /**
  * Unshift the given args to `expr`.
@@ -9,10 +10,10 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-(module.exports = (expr){
+unshift(expr){
   expr = utils.unwrap(expr);
   for (var i = 1, len = arguments.length; i < len; ++i) {
-    unshift(expr.nodes, utils.unwrap(arguments[i]));
+    ns.unshift(expr.nodes, utils.unwrap(arguments[i]));
   }
   return expr.nodes.length;
-}).raw = true;
+}

@@ -1,4 +1,6 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'dart:mirrors';
+import 'package:stylus_dart/nodes/index.dart' as nodes;
 
 /**
  * Splits the given `val` by `delim`
@@ -9,16 +11,16 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  split(delim, val){
+split(delim, val){
   utils.assertString(delim, 'delimiter');
   utils.assertString(val, 'val');
   var splitted = val.string.split(delim.string);
   var expr = new nodes.Expression();
-  var ItemNode = val is  nodes.Ident
+  Type ItemNode = val is  nodes.Ident
     ? nodes.Ident
     : nodes.String;
   for (var i = 0, len = splitted.length; i < len; ++i) {
-    expr.nodes.add(new ItemNode(splitted[i]));
+    expr.nodes.add(reflectClass(ItemNode).newInstance(const Symbol(''), [splitted[i]]).reflectee);
   }
   return expr;
-};
+}

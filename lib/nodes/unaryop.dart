@@ -19,52 +19,47 @@ import './node.dart' show Node;
  * @api public
  */
 
-class UnaryOp {
-	UnaryOp(op, expr) {
-  Node.call(this);
-  this.op = op;
-  this.expr = expr;
-	}
-}
+class UnaryOp extends Node {
+  var op;
 
-/**
- * Inherit from `Node.prototype`.
- */
+  var expr;
 
-UnaryOp.prototype.__proto__ = Node.prototype;
+  UnaryOp(op, [expr]) {
+    this.op = op;
+    this.expr = expr;
+  }
 
-/**
- * Return a clone of this node.
- * 
- * @return {Node}
- * @api public
- */
+  /**
+   * Return a clone of this node.
+   *
+   * @return {Node}
+   * @api public
+   */
 
-clone(parent) {
+  clone(parent) {
+    var clone = new UnaryOp(this.op);
+    clone.expr = this.expr.clone(parent, clone);
+    clone.lineno = this.lineno;
+    clone.column = this.column;
+    clone.filename = this.filename;
+    return clone;
+  }
 
-  var clone = new UnaryOp(this.op);
-  clone.expr = this.expr.clone(parent, clone);
-  clone.lineno = this.lineno;
-  clone.column = this.column;
-  clone.filename = this.filename;
-  return clone;
-}
+  /**
+   * Return a JSON representation of this node.
+   *
+   * @return {Object}
+   * @api public
+   */
 
-/**
- * Return a JSON representation of this node.
- *
- * @return {Object}
- * @api public
- */
-
-toJSON() {
-
-  return {
-    '__type': 'UnaryOp',
-    'op': this.op,
-    'expr': this.expr,
-    'lineno': this.lineno,
-    'column': this.column,
-    'filename': this.filename
-  };
+  toJSON() {
+    return {
+      '__type': 'UnaryOp',
+      'op': this.op,
+      'expr': this.expr,
+      'lineno': this.lineno,
+      'column': this.column,
+      'filename': this.filename
+    };
+  }
 }

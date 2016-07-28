@@ -10,6 +10,8 @@
  */
 
 import './block.dart' show Block;
+import 'package:node_shims/js.dart';
+import 'package:stylus_dart/nodes/node.dart';
 
 /**
  * Initialize a new `Selector` with the given `segs`.
@@ -18,81 +20,79 @@ import './block.dart' show Block;
  * @api public
  */
 
-class Selector {
-	Selector([segs]) {
-  Node.call(this);
-  this.inherits = true;
-  this.segments = segs;
-  this.optional = false;
-	}
-}
+class Selector extends Node {
+  bool inherits;
 
-/**
- * Inherit from `Node.prototype`.
- */
+  var segments;
 
-Selector.prototype.__proto__ = Node.prototype;
+  bool optional;
 
-/**
- * Return the selector string.
- *
- * @return {String}
- * @api public
- */
+  Selector([segs]) {
+    this.inherits = true;
+    this.segments = segs;
+    this.optional = false;
+  }
 
-toString() {
+  /**
+   * Return the selector string.
+   *
+   * @return {String}
+   * @api public
+   */
 
-  return this.segments.join('') + (this.optional ? ' !optional' : '');
-}
+  toString() {
+    return this.segments.join('') + (this.optional ? ' !optional' : '');
+  }
 
-/**
- * Check if this is placeholder selector.
- *
- * @return {Boolean}
- * @api public
- */
+  /**
+   * Check if this is placeholder selector.
+   *
+   * @return {Boolean}
+   * @api public
+   */
 
-Selector.prototype.__defineGetter__('isPlaceholder', (){
-  return this.val && ~this.val.substr(0, 2).indexOf('$');
-});
+  get isPlaceholder {
+    return this.val && falsey(this.val.substr(0, 2).indexOf(r'$'));
+  }
 
-/**
- * Return a clone of this node.
- * 
- * @return {Node}
- * @api public
- */
+  /**
+   * Return a clone of this node.
+   *
+   * @return {Node}
+   * @api public
+   */
 
-clone(parent) {
+  clone(parent) {
+    var clone = new Selector();
+    clone.lineno = this.lineno;
+    clone.column = this.column;
+    clone.filename = this.filename;
+    clone.inherits = this.inherits;
+    clone.val = this.val;
+    clone.segments = this.segments.map((node) {
+      return node.clone(parent, clone);
+    });
+    clone.optional = this.optional;
+    return clone;
+  }
 
-  var clone = new Selector;
-  clone.lineno = this.lineno;
-  clone.column = this.column;
-  clone.filename = this.filename;
-  clone.inherits = this.inherits;
-  clone.val = this.val;
-  clone.segments = this.segments.map((node){ return node.clone(parent, clone); });
-  clone.optional = this.optional;
-  return clone;
-}
+  /**
+   * Return a JSON representation of this node.
+   *
+   * @return {Object}
+   * @api public
+   */
 
-/**
- * Return a JSON representation of this node.
- *
- * @return {Object}
- * @api public
- */
-
-toJSON() {
-
-  return {
-    '__type': 'Selector',
-    'inherits': this.inherits,
-    'segments': this.segments,
-    'optional': this.optional,
-    'val': this.val,
-    'lineno': this.lineno,
-    'column': this.column,
-    'filename': this.filename
-  };
+  toJSON() {
+    return {
+      '__type': 'Selector',
+      'inherits': this.inherits,
+      'segments': this.segments,
+      'optional': this.optional,
+      'val': this.val,
+      'lineno': this.lineno,
+      'column': this.column,
+      'filename': this.filename
+    };
+  }
 }

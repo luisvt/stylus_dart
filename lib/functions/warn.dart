@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'package:stylus_dart/nodes/index.dart' as nodes;
 
 /**
  * Warn with the given `msg` prefixed by "Warning: ".
@@ -7,8 +8,8 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  warn(msg){
+warn(msg){
   utils.assertType(msg, 'string', 'msg');
-  console.warn('Warning: %s', msg.val);
-  return nodes.null;
-};
+  print('Warning: %s' + msg.val);
+  return nodes.$null;
+}

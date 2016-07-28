@@ -19,4 +19,4 @@ prefixClasses(prefix, block){
   block = this.visit(block);
   this.options.prefix = this.prefix = _prefix;
   return block;
-};
+}

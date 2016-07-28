@@ -3,7 +3,8 @@
  * Copyright (c) Automattic <developer.wordpress.com>
  * MIT Licensed
  */
-import 'package:css-parse.dart' show parse;
+//import 'package:css-parse.dart' show parse;
+import 'package:node_shims/js.dart';
 import 'package:stylus_dart/utils.dart';
 /**
  * Convert the given `css` to Stylus source.

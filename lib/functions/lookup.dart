@@ -12,6 +12,6 @@ import '../nodes/index.dart' as nodes;
 lookup(name){
   utils.assertType(name, 'string', 'name');
   var node = this.lookup(name.val);
-  if (!node) return nodes.null;
+  if (!node) return nodes.$null;
   return this.visit(node);
 }

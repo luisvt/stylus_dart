@@ -11,6 +11,7 @@
 import './node.dart' show Node;
 import 'index.dart' as nodes;
 import 'dart:math' as Math;
+import 'package:stylus_dart/functions/adjust.dart';
 import 'package:stylus_dart/nodes/hsla.dart';
 
 /**
@@ -228,7 +229,7 @@ class RGBA extends Node {
             var n = right.val;
             switch (right.type) {
               case '%':
-                return adjust(this, new nodes.String('lightness'), right);
+                return adjust(this, new nodes.$String('lightness'), right);
               case 'deg':
                 return this.hsla
                     .adjustHue(n)
@@ -249,7 +250,7 @@ class RGBA extends Node {
             var n = right.val;
             switch (right.type) {
               case '%':
-                return adjust(this, new nodes.String('lightness'),
+                return adjust(this, new nodes.$String('lightness'),
                     new nodes.Unit(-n, '%'));
               case 'deg':
                 return this.hsla
@@ -258,6 +259,7 @@ class RGBA extends Node {
               default:
                 return this.sub(n, n, n, 0);
             }
+            break;
           case 'rgba':
             return this.sub(right.r, right.g, right.b, right.a);
           case 'hsla':
@@ -299,10 +301,8 @@ class RGBA extends Node {
       return this.name;
 
     if (1 == this.a) {
-      var r = pad(this.r)
-      ,
-          g = pad(this.g)
-      ,
+      var r = pad(this.r),
+          g = pad(this.g),
           b = pad(this.b);
 
       // Compress
@@ -329,23 +329,14 @@ class RGBA extends Node {
    */
 
   static fromHSLA(hsla) {
-    var h = hsla.h / 360
-    ,
-        s = hsla.s / 100
-    ,
-        l = hsla.l / 100
-    ,
+    var h = hsla.h / 360,
+        s = hsla.s / 100,
+        l = hsla.l / 100,
         a = hsla.a;
 
     var m2 = l <= .5 ? l * (s + 1) : l + s - l * s
     ,
         m1 = l * 2 - m2;
-
-    var r = hue(h + 1 / 3) * 0xff
-    ,
-        g = hue(h) * 0xff
-    ,
-        b = hue(h - 1 / 3) * 0xff;
 
     hue(h) {
       if (h < 0) ++h;
@@ -355,6 +346,10 @@ class RGBA extends Node {
       if (h * 3 < 2) return m1 + (m2 - m1) * (2 / 3 - h) * 6;
       return m1;
     }
+
+    var r = hue(h + 1 / 3) * 0xff,
+        g = hue(h) * 0xff,
+        b = hue(h - 1 / 3) * 0xff;
 
     return new RGBA(r, g, b, a);
   }

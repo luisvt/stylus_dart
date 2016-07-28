@@ -10,14 +10,24 @@ import '../nodes/index.dart' as nodes;
  * @api public
  */
 
-define(name, expr, global){
-  utils.assertType(name, 'string', 'name');
-  expr = utils.unwrap(expr);
-  var scope = this.currentScope;
-  if (global && global.toBoolean().isTrue) {
-    scope = this.global.scope;
+var define = new _Define();
+
+class _Define {
+  var currentScope;
+
+  var global;
+
+  call(name, expr, global) {
+    utils.assertType(name, 'string', 'name');
+    expr = utils.unwrap(expr);
+    var scope = this.currentScope;
+    if (global && global
+        .toBoolean()
+        .isTrue) {
+      scope = this.global.scope;
+    }
+    var node = new nodes.Ident(name.val, expr);
+    scope.add(node);
+    return nodes.$null;
   }
-  var node = new nodes.Ident(name.val, expr);
-  scope.add(node);
-  return nodes.$null;
-};
+}

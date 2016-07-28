@@ -10,6 +10,7 @@
  */
 
 import './atrule.dart' show Atrule;
+import 'package:node_shims/js.dart';
 
 /**
  * Initialize a new `Keyframes` with the given `segs`,
@@ -20,67 +21,61 @@ import './atrule.dart' show Atrule;
  * @api public
  */
 
-class Keyframes {
-	Keyframes(segs, prefix) {
-  Atrule.call(this, 'keyframes');
-  this.segments = segs;
-  this.prefix = or(prefix, 'official');
-	}
-}
+class Keyframes extends Atrule {
+  var prefix;
 
-/**
- * Inherit from `Atrule.prototype`.
- */
+  Keyframes([segs, prefix]) : super('keyframes') {
+    this.segments = segs;
+    this.prefix = or(prefix, 'official');
+  }
 
-Keyframes.prototype.__proto__ = Atrule.prototype;
+  /**
+   * Return a clone of this node.
+   *
+   * @return {Node}
+   * @api public
+   */
 
-/**
- * Return a clone of this node.
- * 
- * @return {Node}
- * @api public
- */
+  clone(parent) {
+    var clone = new Keyframes();
+    clone.lineno = this.lineno;
+    clone.column = this.column;
+    clone.filename = this.filename;
+    clone.segments = this.segments.map((node) {
+      return node.clone(parent, clone);
+    });
+    clone.prefix = this.prefix;
+    clone.block = this.block.clone(parent, clone);
+    return clone;
+  }
 
-clone(parent) {
+  /**
+   * Return a JSON representation of this node.
+   *
+   * @return {Object}
+   * @api public
+   */
 
-  var clone = new Keyframes;
-  clone.lineno = this.lineno;
-  clone.column = this.column;
-  clone.filename = this.filename;
-  clone.segments = this.segments.map((node) { return node.clone(parent, clone); });
-  clone.prefix = this.prefix;
-  clone.block = this.block.clone(parent, clone);
-  return clone;
-}
+  toJSON() {
+    return {
+      '__type': 'Keyframes',
+      'segments': this.segments,
+      'prefix': this.prefix,
+      'block': this.block,
+      'lineno': this.lineno,
+      'column': this.column,
+      'filename': this.filename
+    };
+  }
 
-/**
- * Return a JSON representation of this node.
- *
- * @return {Object}
- * @api public
- */
+  /**
+   * Return `@keyframes name`.
+   *
+   * @return {String}
+   * @api public
+   */
 
-toJSON() {
-
-  return {
-    '__type': 'Keyframes',
-    'segments': this.segments,
-    'prefix': this.prefix,
-    'block': this.block,
-    'lineno': this.lineno,
-    'column': this.column,
-    'filename': this.filename
-  };
-}
-
-/**
- * Return `@keyframes name`.
- *
- * @return {String}
- * @api public
- */
-
-toString() {
-
-  return '@keyframes ' + this.segments.join('');
+  toString() {
+    return '@keyframes ' + this.segments.join('');
+  }
 }

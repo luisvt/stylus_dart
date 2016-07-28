@@ -1,4 +1,6 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'package:stylus_dart/nodes/index.dart' as nodes;
+import 'dart:math' as Math;
 
 /**
  * Return the tangent of the given `angle`.
@@ -8,7 +10,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  tan(angle) {
+tan(angle) {
   utils.assertType(angle, 'unit', 'angle');
 
   var radians = angle.val;
@@ -24,4 +26,4 @@ module.exports =  tan(angle) {
     , tan = (m * sin / cos ).round() / m;
 
   return new nodes.Unit(tan, '');
-};
+}

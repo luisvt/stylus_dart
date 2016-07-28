@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../visitor/normalizer.dart' show Normalizer;
 
 /**
  * Returns true if the given selector exists.
@@ -8,11 +9,11 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  selectorExists(sel) {
+selectorExists(sel) {
   utils.assertString(sel, 'selector');
 
   if (!this.__selectorsMap__) {
-    import '../visitor/normalizer.dart' show Normalizer;
+    var visitor = new Normalizer(this.root.clone());
     visitor.visit(visitor.root);
 
     this.__selectorsMap__ = visitor.map;

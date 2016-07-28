@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'package:stylus_dart/nodes/index.dart' as nodes;
 
 /**
  * Returns substring of the given `val`.
@@ -10,7 +11,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  substr(val, start, length){
+substr(val, start, length){
   utils.assertString(val, 'val');
   utils.assertType(start, 'unit', 'start');
   length = length && length.val;
@@ -18,4 +19,4 @@ module.exports =  substr(val, start, length){
   return val is  nodes.Ident
       ? new nodes.Ident(res)
       : new nodes.String(res);
-};
+}

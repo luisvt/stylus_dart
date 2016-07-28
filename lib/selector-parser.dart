@@ -34,7 +34,7 @@ class SelectorParser {
 
   var raw;
 
-  SelectorParser(str, stack, parts) {
+  SelectorParser(str, [stack, parts]) {
     this.str = str;
     this.stack = or(stack, []);
     this.parts = or(parts, []);

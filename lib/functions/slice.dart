@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'package:stylus_dart/nodes/index.dart' as nodes;
 
 /**
  * This is a heler function for the slice method
@@ -9,7 +10,7 @@ import '../utils.dart' show utils;
  * @return {String|Literal|Null}
  * @api public
 */
-(module.exports =  slice(val, start, end) {
+slice(val, start, end) {
   start = start && start.nodes[0].val;
   end = end && end.nodes[0].val;
 
@@ -21,7 +22,7 @@ import '../utils.dart' show utils;
 
   var result = slice(val[0].string, start, end);
 
-  return val[0] is  nodes.Ident
+  return val[0] is nodes.Ident
     ? new nodes.Ident(result)
     : new nodes.String(result);
-}).raw = true;
+}

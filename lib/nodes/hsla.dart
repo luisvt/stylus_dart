@@ -212,35 +212,43 @@ class HSLA extends Node {
         b = rgba.b / 255,
         a = rgba.a;
 
-    var min = Math.min(r, g, b),
-        max = Math.max(r, g, b),
+    var min = Math.min(r, Math.min(g, b)),
+        max = Math.max(r, Math.max(g, b)),
         l = (max + min) / 2,
         d = max - min,
-        h,
-        s;
 
-    switch (max) {
-      case min:
-        h = 0;
-        break;
-      case r:
-        h = 60 * (g - b) / d;
-        break;
-      case g:
-        h = 60 * (b - r) / d + 120;
-        break;
-      case b:
-        h = 60 * (r - g) / d + 240;
-        break;
-    }
+        h = max == min ? 0 :
+        /**/max == r ? 60 * (g - b) / d :
+        /**/max == g ? 60 * (b - r) / d + 120 :
+        /**/max == b ? 60 * (r - g) / d + 240 :
+        /**/null,
 
-    if (max == min) {
-      s = 0;
-    } else if (l < .5) {
-      s = d / (2 * l);
-    } else {
-      s = d / (2 - 2 * l);
-    }
+        s = max == min ? 0 :
+        /**/l < .5 ? d / (2 * l) :
+        /**/d / (2 - 2 * l);
+
+//    switch (max) {
+//      case min:
+//        h = 0;
+//        break;
+//      case r:
+//        h = 60 * (g - b) / d;
+//        break;
+//      case g:
+//        h = 60 * (b - r) / d + 120;
+//        break;
+//      case b:
+//        h = 60 * (r - g) / d + 240;
+//        break;
+//    }
+
+//    if (max == min) {
+//      s = 0;
+//    } else if (l < .5) {
+//      s = d / (2 * l);
+//    } else {
+//      s = d / (2 - 2 * l);
+//    }
 
     h %= 360;
     s *= 100;

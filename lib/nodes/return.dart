@@ -10,6 +10,8 @@
  */
 
 import './node.dart' show Node;
+import 'package:node_shims/js.dart';
+import 'package:stylus_dart/nodes/index.dart' as nodes;
 
 /**
  * Initialize a new `Return` node with the given `expr`.
@@ -18,49 +20,43 @@ import './node.dart' show Node;
  * @api public
  */
 
-class Return {
-	Return([expr]) {
-  this.expr = or(expr, nodes.null);
-	}
-}
+class Return extends Node {
+  var expr;
 
-/**
- * Inherit from `Node.prototype`.
- */
+  Return([expr]) {
+    this.expr = or(expr, nodes.$null);
+  }
 
-Return.prototype.__proto__ = Node.prototype;
+  /**
+   * Return a clone of this node.
+   *
+   * @return {Node}
+   * @api public
+   */
 
-/**
- * Return a clone of this node.
- * 
- * @return {Node}
- * @api public
- */
+  clone(parent) {
+    var clone = new Return();
+    clone.expr = this.expr.clone(parent, clone);
+    clone.lineno = this.lineno;
+    clone.column = this.column;
+    clone.filename = this.filename;
+    return clone;
+  }
 
-clone(parent) {
+  /**
+   * Return a JSON representation of this node.
+   *
+   * @return {Object}
+   * @api public
+   */
 
-  var clone = new Return();
-  clone.expr = this.expr.clone(parent, clone);
-  clone.lineno = this.lineno;
-  clone.column = this.column;
-  clone.filename = this.filename;
-  return clone;
-}
-
-/**
- * Return a JSON representation of this node.
- *
- * @return {Object}
- * @api public
- */
-
-toJSON() {
-
-  return {
-    '__type': 'Return',
-    'expr': this.expr,
-    'lineno': this.lineno,
-    'column': this.column,
-    'filename': this.filename
-  };
+  toJSON() {
+    return {
+      '__type': 'Return',
+      'expr': this.expr,
+      'lineno': this.lineno,
+      'column': this.column,
+      'filename': this.filename
+    };
+  }
 }

@@ -15,4 +15,4 @@ math(n, fn){
   utils.assertType(n, 'unit', 'n');
   utils.assertString(fn, 'fn');
   return new nodes.Unit(Math[fn.string](n.val), n.type);
-};
+}

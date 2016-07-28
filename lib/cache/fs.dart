@@ -39,8 +39,8 @@ class FSCache {
    */
 
   get(key) {
-    var data = fs.readFileSync(join(this._location, key), 'utf-8');
-    return JSON.parse(data, FSCache.fromJSON);
+    var data = fs.readFileSync(join([this._location, key]), 'utf-8');
+    return JSON.decode(data, reviver: FSCache.fromJSON);
   }
 
   /**
