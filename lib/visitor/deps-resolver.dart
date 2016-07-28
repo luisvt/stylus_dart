@@ -1,9 +1,9 @@
-
-/**
- * Module dependencies.
- */
-
-import './.dart' show Visitor;
+import 'package:stylus_dart/visitor/index.dart';
+import 'package:node_shims/path.dart';
+import 'package:stylus_dart/utils.dart' as utils;
+import 'package:stylus_dart/nodes/index.dart' as nodes;
+import 'package:stylus_dart/parser.dart';
+import 'package:node_shims/js.dart';
 
 /**
  * Initialize a new `DepsResolver` with the given `root` Node
@@ -14,161 +14,162 @@ import './.dart' show Visitor;
  * @api private
  */
 
-class DepsResolver {
-	DepsResolver(root, options) {
-  this.root = root;
-  this.filename = options.filename;
-  this.paths = options.paths || [];
-  this.paths.add(dirname(options.filename || '.'));
-  this.options = options;
-  this.functions = {};
-  this.deps = [];
-	}
-}
+class DepsResolver extends Visitor {
+  var filename;
 
-/**
- * Inherit from `Visitor.prototype`.
- */
+  List paths;
 
-DepsResolver.prototype.__proto__ = Visitor.prototype;
+  var options;
 
-var visit = DepsResolver.prototype.visit;
+  Map functions;
 
-visit(node) {
+  List deps;
 
-  switch (node.nodeName) {
-    case 'root':
-    case 'block':
-    case 'expression':
-      this.visitRoot(node);
-      break;
-    case 'group':
-    case 'media':
-    case 'atblock':
-    case 'atrule':
-    case 'keyframes':
-    case 'each':
-    case 'supports':
-      this.visit(node.block);
-      break;
-    default:
-      visit.call(this, node);
-  }
-}
-
-/**
- * Visit Root.
- */
-
-visitRoot(block) {
-
-  for (var i = 0, len = block.nodes.length; i < len; ++i) {
-    this.visit(block.nodes[i]);
-  }
-}
-
-/**
- * Visit Ident.
- */
-
-visitIdent(ident) {
-
-  this.visit(ident.val);
-}
-
-/**
- * Visit If.
- */
-
-visitIf(node) {
-
-  this.visit(node.block);
-  this.visit(node.cond);
-  for (var i = 0, len = node.elses.length; i < len; ++i) {
-    this.visit(node.elses[i]);
-  }
-}
-
-/**
- * Visit Function.
- */
-
-visitFunction(fn) {
-
-  this.functions[fn.name] = fn.block;
-}
-
-/**
- * Visit Call.
- */
-
-visitCall(call) {
-
-  if ( this.functions.containsKey(call.name)) this.visit(this.functions[call.name]);
-  if (call.block) this.visit(call.block);
-}
-
-/**
- * Visit Import.
- */
-
-visitImport(node) {
-
-  var path = node.path.first.val
-    , literal, found, oldPath;
-
-  if (!path) return;
-
-  literal = new RegExp(r'\.css(?:"|$)').test(path);
-
-  // support optional .styl
-  if (!literal && !new RegExp(r'\.styl$/').test(path)) {
-    oldPath = path;
-    path += '.styl';
+  DepsResolver(root, options) : super(root) {
+    this.root = root;
+    this.filename = options.filename;
+    this.paths = options.paths ?? [];
+    this.paths.add(dirname(options.filename ?? '.'));
+    this.options = options;
+    this.functions = {};
+    this.deps = [];
   }
 
-  // Lookup
-  found = utils.find(path, this.paths, this.filename);
+  visit(node, [fn]) {
+    switch (node.nodeName) {
+      case 'root':
+      case 'block':
+      case 'expression':
+        this.visitRoot(node);
+        break;
+      case 'group':
+      case 'media':
+      case 'atblock':
+      case 'atrule':
+      case 'keyframes':
+      case 'each':
+      case 'supports':
+        this.visit(node.block);
+        break;
+      default:
+        super.visit(node);
+    }
+  }
 
-  // support optional index
-  if (!found && oldPath) found = utils.lookupIndex(oldPath, this.paths, this.filename);
+  /**
+   * Visit Root.
+   */
 
-  if (!found) return;
+  visitRoot(block) {
+    for (var i = 0, len = block.nodes.length; i < len; ++i) {
+      this.visit(block.nodes[i]);
+    }
+  }
 
-  this.deps = this.deps.concat(found);
+  /**
+   * Visit Ident.
+   */
 
-  if (literal) return;
+  visitIdent(ident) {
+    this.visit(ident.val);
+  }
 
-  // nested imports
-  for (var i = 0, len = found.length; i < len; ++i) {
-    var file = found[i]
-      , dir = dirname(file)
-      , str = fs.readFileSync(file, 'utf-8')
-      , block = new nodes.Block
-      , parser = new Parser(str, utils.merge({ 'root': block }, this.options));
+  /**
+   * Visit If.
+   */
 
-    if (!~this.paths.indexOf(dir)) this.paths.add(dir);
+  visitIf(node) {
+    this.visit(node.block);
+    this.visit(node.cond);
+    for (var i = 0, len = node.elses.length; i < len; ++i) {
+      this.visit(node.elses[i]);
+    }
+  }
 
-    try {
-      block = parser.parse();
-    } catch (err) {
-      err.filename = file;
-      err.lineno = parser.lexer.lineno;
-      err.column = parser.lexer.column;
-      err.input = str;
-      throw err;
+  /**
+   * Visit Function.
+   */
+
+  visitFunction(fn) {
+    this.functions[fn.name] = fn.block;
+  }
+
+  /**
+   * Visit Call.
+   */
+
+  visitCall(call) {
+    if (this.functions.containsKey(call.name)) this.visit(this.functions[call.name]);
+    if (call.block) this.visit(call.block);
+  }
+
+  /**
+   * Visit Import.
+   */
+
+  visitImport(node) {
+    var path = node.path.first.val
+    ,
+        literal,
+        found,
+        oldPath;
+
+    if (!path) return;
+
+    literal = new RegExp(r'\.css(?:"|$)').hasMatch(path);
+
+    // support optional .styl
+    if (!literal && !new RegExp(r'\.styl$/').hasMatch(path)) {
+      oldPath = path;
+      path += '.styl';
     }
 
-    this.visit(block);
+    // Lookup
+    found = utils.find(path, this.paths, this.filename);
+
+    // support optional index
+    if (!found && oldPath) found = utils.lookupIndex(oldPath, this.paths, this.filename);
+
+    if (!found) return;
+
+    this.deps = this.deps.concat(found);
+
+    if (literal) return;
+
+    // nested imports
+    for (var i = 0, len = found.length; i < len; ++i) {
+      var file = found[i]
+      ,
+          dir = dirname(file)
+      ,
+          str = fs.readFileSync(file, 'utf-8')
+      ,
+          block = new nodes.Block()
+      ,
+          parser = new Parser(str, utils.merge({ 'root': block}, this.options));
+
+      if (truthy(this.paths.indexOf(dir))) this.paths.add(dir);
+
+      try {
+        block = parser.parse();
+      } catch (err) {
+        err.filename = file;
+        err.lineno = parser.lexer.lineno;
+        err.column = parser.lexer.column;
+        err.input = str;
+        throw err;
+      }
+
+      this.visit(block);
+    }
   }
-}
 
-/**
- * Get dependencies.
- */
+  /**
+   * Get dependencies.
+   */
 
-resolve() {
-
-  this.visit(this.root);
-  return utils.uniq(this.deps);
+  resolve() {
+    this.visit(this.root);
+    return utils.uniq(this.deps);
+  }
 }

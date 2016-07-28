@@ -10,22 +10,26 @@
  */
 
 import '../visitor/compiler.dart' show Compiler;
+import 'package:node_shims/js.dart';
+import 'package:stylus_dart/functions/extname.dart';
+import 'package:stylus_dart/nodes/index.dart' as nodes;
+import 'package:stylus_dart/utils.dart' as utils;
 
 /**
  * Mime table.
  */
 
 var defaultMimes = {
-    ''.gif'': 'image/gif'
-  , ''.png'': 'image/png'
-  , ''.jpg'': 'image/jpeg'
-  , ''.jpeg'': 'image/jpeg'
-  , ''.svg'': 'image/svg+xml'
-  , ''.webp'': 'image/webp'
-  , ''.ttf'': 'application/x-font-ttf'
-  , ''.eot'': 'application/vnd.ms-fontobject'
-  , ''.woff'': 'application/font-woff'
-  , ''.woff2'': 'application/font-woff2'
+    '.gif': 'image/gif'
+  , '.png': 'image/png'
+  , '.jpg': 'image/jpeg'
+  , '.jpeg': 'image/jpeg'
+  , '.svg': 'image/svg+xml'
+  , '.webp': 'image/webp'
+  , '.ttf': 'application/x-font-ttf'
+  , '.eot': 'application/vnd.ms-fontobject'
+  , '.woff': 'application/font-woff'
+  , '.woff2': 'application/font-woff2'
 };
 
 /**
@@ -34,7 +38,7 @@ var defaultMimes = {
 var encodingTypes = {
   'BASE_64': 'base64',
   'UTF8': 'charset=utf-8'
-}
+};
 
 /**
  * Return a url() function with the given `options`.
@@ -56,12 +60,12 @@ var encodingTypes = {
  * @api public
  */
 
-module.exports = (options) {
+url(options) {
   options = or(options, {});
 
-  var _paths = options.paths || [];
+  var _paths = options.paths ?? [];
   var sizeLimit = null != options.limit ? options.limit : 30000;
-  var mimes = options.mimes || defaultMimes;
+  var mimes = options.mimes ?? defaultMimes;
 
   /**
    * @param {object} url - The path to the image you want to encode.
@@ -82,7 +86,7 @@ module.exports = (options) {
     url = parse(url);
     var ext = extname(url.pathname)
       , mime = mimes[ext]
-      , hash = url.hash || ''
+      , hash = url.hash ?? ''
       , literal = new nodes.Literal('url("' + url.href + '")')
       , paths = _paths.concat(this.paths)
       , buf
@@ -129,8 +133,8 @@ module.exports = (options) {
 
   fn.raw = true;
   return fn;
-};
+}
 
 // Exporting default mimes so we could easily access them
-module.exports.mimes = defaultMimes;
+var mimes = defaultMimes;
 

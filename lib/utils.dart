@@ -444,7 +444,7 @@ uniq(arr){
  * @api private
  */
 
-compileSelectors(arr, leaveHidden){
+compileSelectors(arr, [leaveHidden]){
   var selectors = []
     , Parser = require('./selector-parser')
     , indent = (this.indent || '')

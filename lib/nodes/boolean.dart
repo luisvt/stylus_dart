@@ -71,7 +71,7 @@ class Boolean$ extends Node {
    * @api public
    */
 
-  negate() => new Boolean(!this.val);
+  negate() => new Boolean$(!this.val);
 
   /**
    * Return 'Boolean'.

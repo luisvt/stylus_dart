@@ -12,88 +12,14 @@
 import 'package:node_shims/js.dart';
 import 'package:stylus_dart/visitor/index.dart';
 import 'package:stylus_dart/stack/index.dart';
+import 'package:node_shims/path.dart';
+import 'package:stylus_dart/nodes/index.dart' as nodes;
+import 'package:stylus_dart/parser.dart';
+import 'package:stylus_dart/utils.dart' as utils;
+import 'package:stylus_dart/stack/frame.dart';
+import 'package:stylus_dart/colors.dart';
+import 'package:stylus_dart/functions/url.dart';
 
-/**
- * Import `file` and return Block node.
- *
- * @api private
- */
- importFile(node, file, literal) {
-  var importStack = this.importStack
-    , Parser = require('../parser')
-    , stat;
-
-  // Handling the `require`
-  if (node.once) {
-    if (this.requireHistory[file]) return nodes.null;
-    this.requireHistory[file] = true;
-
-    if (literal && !this.includeCSS) {
-      return node;
-    }
-  }
-
-  // Avoid overflows from importing the same file over again
-  if (~importStack.indexOf(file))
-    throw new Error('import loop has been found');
-
-  var str = fs.readFileSync(file, 'utf8');
-
-  // shortcut for empty files
-  if (!str.trim()) return nodes.null;
-
-  // Expose imports
-  node.path = file;
-  node.dirname = dirname(file);
-  // Store the modified time
-  stat = fs.statSync(file);
-  node.mtime = stat.mtime;
-  this.paths.add(node.dirname);
-
-  if (this.options._imports) this.options._imports.add(node.clone());
-
-  // Parse the file
-  importStack.add(file);
-  nodes.filename = file;
-
-  if (literal) {
-    literal = new nodes.Literal(str.replace(new RegExp(r'\r\n?/'), '\n'));
-    literal.lineno = literal.column = 1;
-    if (!this.resolveURL) return literal;
-  }
-
-  // parse
-  var block = new nodes.Block
-    , parser = new Parser(str, utils.merge({ 'root': block }, this.options));
-
-  try {
-    block = parser.parse();
-  } catch (err) {
-    var line = parser.lexer.lineno
-      , column = parser.lexer.column;
-
-    if (literal && this.includeCSS && this.resolveURL) {
-      this.warn('ParseError: ' + file + ':' + line + ':' + column + '. This file included as-is');
-      return literal;
-    } else {
-      err.filename = file;
-      err.lineno = line;
-      err.column = column;
-      err.input = str;
-      throw err;
-    }
-  }
-
-  // Evaluate imported "root"
-  block = block.clone(this.currentBlock);
-  block.parent = this.currentBlock;
-  block.scope = false;
-  var ret = this.visit(block);
-  pop(importStack);
-  if (!this.resolveURL || this.resolveURL.nocheck) pop(this.paths);
-
-  return ret;
-}
 
 /**
  * Initialize a new `Evaluator` with the given `root` Node
@@ -139,21 +65,25 @@ class Evaluator extends Visitor {
 
   int $return;
 
+  Frame global;
+
+  var currentBlock;
+
 	Evaluator(root, options) : super(root) {
   options = or(options, {});
 //  Visitor.call(this, root);
-  var functions = this.functions = options.functions || {};
+  var functions = this.functions = options.functions ?? {};
   this.stack = new Stack();
-  this.imports = options.imports || [];
-  this.globals = options.globals || {};
-  this.paths = options.paths || [];
-  this.prefix = options.prefix || '';
+  this.imports = options.imports ?? [];
+  this.globals = options.globals ?? {};
+  this.paths = options.paths ?? [];
+  this.prefix = options.prefix ?? '';
   this.filename = options.filename;
   this.includeCSS = options['include css'];
   this.resolveURL = functions.url
     && 'resolver' == functions.url.name
     && functions.url.options;
-  this.paths.add(dirname(options.filename || '.'));
+  this.paths.add(dirname(options.filename ?? '.'));
   this.stack.add(this.global = new Frame(root));
   this.warnings = options.warn;
   this.options = options;
@@ -163,6 +93,88 @@ class Evaluator extends Visitor {
   this.$return = 0;
 	}
 
+  /**
+   * Import `file` and return Block node.
+   *
+   * @api private
+   */
+  importFile(node, file, literal) {
+    var importStack = this.importStack
+//    , Parser = require('../parser')
+    , stat;
+
+    // Handling the `require`
+    if (node.once) {
+      if (this.requireHistory[file]) return nodes.$null;
+      this.requireHistory[file] = true;
+
+      if (literal && !this.includeCSS) {
+        return node;
+      }
+    }
+
+    // Avoid overflows from importing the same file over again
+    if (~importStack.indexOf(file))
+      throw new Exception('import loop has been found');
+
+    var str = fs.readFileSync(file, 'utf8');
+
+    // shortcut for empty files
+    if (!str.trim()) return nodes.$null;
+
+    // Expose imports
+    node.path = file;
+    node.dirname = dirname(file);
+    // Store the modified time
+    stat = fs.statSync(file);
+    node.mtime = stat.mtime;
+    this.paths.add(node.dirname);
+
+    if (this.options._imports) this.options._imports.add(node.clone());
+
+    // Parse the file
+    importStack.add(file);
+    nodes.filename = file;
+
+    if (literal) {
+      literal = new nodes.Literal(str.replace(new RegExp(r'\r\n?/'), '\n'));
+      literal.lineno = literal.column = 1;
+      if (!this.resolveURL) return literal;
+    }
+
+    // parse
+    var block = new nodes.Block()
+    , parser = new Parser(str, utils.merge({ 'root': block }, this.options));
+
+    try {
+      block = parser.parse();
+    } catch (err) {
+      var line = parser.lexer.lineno
+      , column = parser.lexer.column;
+
+      if (literal && this.includeCSS && this.resolveURL) {
+        this.warn('ParseError: ' + file + ':' + line + ':' + column + '. This file included as-is');
+        return literal;
+      } else {
+        err.filename = file;
+        err.lineno = line;
+        err.column = column;
+        err.input = str;
+        throw err;
+      }
+    }
+
+    // Evaluate imported "root"
+    block = block.clone(this.currentBlock);
+    block.parent = this.currentBlock;
+    block.scope = false;
+    var ret = this.visit(block);
+    pop(importStack);
+    if (!this.resolveURL || this.resolveURL.nocheck) pop(this.paths);
+
+    return ret;
+  }
+
 /**
  * Proxy visit to expose node line numbers.
  *
@@ -171,8 +183,7 @@ class Evaluator extends Visitor {
  * @api private
  */
 
-//var visit = Visitor.prototype.visit;
-visit(node) {
+visit(node, [fn]) {
 
   try {
     return visit.call(this, node);
@@ -229,7 +240,7 @@ populateGlobalScope() {
   var scope = this.global.scope;
 
   // colors
-  Object.keys(colors).forEach((name){
+  colors.keys.forEach((name){
     var color = colors[name]
       , rgba = new nodes.RGBA(color[0], color[1], color[2], color[3])
       , node = new nodes.Ident(name, rgba);
@@ -240,7 +251,7 @@ populateGlobalScope() {
   // expose url function
   scope.add(new nodes.Ident(
     'embedurl',
-    new nodes.Function('embedurl', require('../functions/url')({
+    new nodes.Function('embedurl', url({
       'limit': false
     }))
   ));

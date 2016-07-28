@@ -43,7 +43,7 @@ class Compiler extends Visitor {
 
   var isURL;
 
-  Compiler(root, options) : super(root) {
+  Compiler(root, [options]) : super(root) {
     options = or(options, {});
     this.compress = options.compress;
     this.firebug = options.firebug;

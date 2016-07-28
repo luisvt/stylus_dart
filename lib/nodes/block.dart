@@ -28,7 +28,7 @@ class Block extends Node {
 
   bool scope;
 
-  Block(parent, node) {
+  Block([parent, node]) {
 //  Node.call(this);
     this.nodes = [];
     this.parent = parent;

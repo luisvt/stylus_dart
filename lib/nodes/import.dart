@@ -10,6 +10,7 @@
  */
 
 import './node.dart' show Node;
+import 'package:node_shims/js.dart';
 
 /**
  * Initialize a new `Import` with the given `expr`.
@@ -18,55 +19,52 @@ import './node.dart' show Node;
  * @api public
  */
 
-class Import {
-	Import(expr, once) {
-  Node.call(this);
-  this.path = expr;
-  this.once = or(once, false);
-	}
-}
+class Import extends Node {
+  var path;
 
-/**
- * Inherit from `Node.prototype`.
- */
+  var once;
 
-Import.prototype.__proto__ = Node.prototype;
+  var mtime;
 
-/**
- * Return a clone of this node.
- *
- * @return {Node}
- * @api public
- */
+  Import([expr, once]) {
+    this.path = expr;
+    this.once = or(once, false);
+  }
 
-clone(parent) {
+  /**
+   * Return a clone of this node.
+   *
+   * @return {Node}
+   * @api public
+   */
 
-  var clone = new Import();
-  clone.path = this.path.nodeName ? this.path.clone(parent, clone) : this.path;
-  clone.once = this.once;
-  clone.mtime = this.mtime;
-  clone.lineno = this.lineno;
-  clone.column = this.column;
-  clone.filename = this.filename;
-  return clone;
-}
+  clone(parent) {
+    var clone = new Import();
+    clone.path = this.path.nodeName ? this.path.clone(parent, clone) : this.path;
+    clone.once = this.once;
+    clone.mtime = this.mtime;
+    clone.lineno = this.lineno;
+    clone.column = this.column;
+    clone.filename = this.filename;
+    return clone;
+  }
 
-/**
- * Return a JSON representation of this node.
- *
- * @return {Object}
- * @api public
- */
+  /**
+   * Return a JSON representation of this node.
+   *
+   * @return {Object}
+   * @api public
+   */
 
-toJSON() {
-
-  return {
-    '__type': 'Import',
-    'path': this.path,
-    'once': this.once,
-    'mtime': this.mtime,
-    'lineno': this.lineno,
-    'column': this.column,
-    'filename': this.filename
-  };
+  toJSON() {
+    return {
+      '__type': 'Import',
+      'path': this.path,
+      'once': this.once,
+      'mtime': this.mtime,
+      'lineno': this.lineno,
+      'column': this.column,
+      'filename': this.filename
+    };
+  }
 }
