@@ -1,0 +1,9 @@
+name: stylus_dart
+version: 0.0.1
+authors:
+  - Luis Vargas <luisvargastijerino@gmail.com>
+dependencies:
+  node_shims: any
+  path: any
+  json_object: any
+  crypto: any
