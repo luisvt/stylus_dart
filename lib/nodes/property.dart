@@ -20,7 +20,7 @@ import './node.dart' show Node;
  */
 
 class Property {
-	Property(segs, expr) {
+	Property(segs, [expr]) {
   Node.call(this);
   this.segments = segs;
   this.expr = expr;

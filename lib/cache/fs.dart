@@ -2,12 +2,11 @@
  * Module dependencies.
  */
 
-import 'package:crypto.dart' show crypto;
+import 'package:crypto/crypto.dart' show crypto;
 import 'package:node_shims/process.dart';
 import 'package:node_shims/js.dart';
 import 'package:node_shims/path.dart';
 import 'dart:convert';
-import '';
 
 class FSCache {
   var _location;

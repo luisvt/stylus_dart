@@ -6,38 +6,23 @@
  */
 
 /**
- * Expose constructors.
- */
-
-exports.ParseError = ParseError;
-exports.SyntaxError = SyntaxError;
-
-/**
- * Inherit from `Error.prototype`.
- */
-
-SyntaxError.prototype.__proto__ = Error.prototype;
-
-/**
  * Initialize a new `ParseError` with the given `msg`.
  *
  * @param {String} msg
  * @api private
  */
 
-class ParseError {
-	ParseError(msg) {
-  this.name = 'ParseError';
-  this.message = msg;
-  Error.captureStackTrace(this, ParseError);
+class ParseError implements Exception {
+  String name;
+
+  var message;
+
+  ParseError(msg) {
+    this.name = 'ParseError';
+    this.message = msg;
+//    Error.captureStackTrace(this, ParseError);
+  }
 }
-
-/**
- * Inherit from `Error.prototype`.
- */
-
-ParseError.prototype.__proto__ = Error.prototype;
-
 /**
  * Initialize a new `SyntaxError` with the given `msg`.
  *
@@ -45,16 +30,14 @@ ParseError.prototype.__proto__ = Error.prototype;
  * @api private
  */
 
-class SyntaxError {
-	SyntaxError(msg) {
-  this.name = 'SyntaxError';
-  this.message = msg;
-  Error.captureStackTrace(this, ParseError);
+class SyntaxError implements Exception {
+  String name;
+
+  var message;
+
+  SyntaxError(msg) {
+    this.name = 'SyntaxError';
+    this.message = msg;
+//    Error.captureStackTrace(this, ParseError);
+  }
 }
-
-/**
- * Inherit from `Error.prototype`.
- */
-
-SyntaxError.prototype.__proto__ = Error.prototype;
-

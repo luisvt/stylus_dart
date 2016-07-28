@@ -19,7 +19,7 @@ import './block.dart' show Block;
  */
 
 class Selector {
-	Selector(segs) {
+	Selector([segs]) {
   Node.call(this);
   this.inherits = true;
   this.segments = segs;

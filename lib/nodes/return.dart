@@ -19,7 +19,7 @@ import './node.dart' show Node;
  */
 
 class Return {
-	Return(expr) {
+	Return([expr]) {
   this.expr = or(expr, nodes.null);
 	}
 }

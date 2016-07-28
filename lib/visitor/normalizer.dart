@@ -9,7 +9,10 @@
  * Module dependencies.
  */
 
-import './.dart' show Visitor;
+import 'package:stylus_dart/visitor/index.dart';
+import 'package:node_shims/js.dart';
+import 'package:stylus_dart/nodes/index.dart' as nodes;
+import 'package:stylus_dart/utils.dart' as utils;
 
 /**
  * Initialize a new `Normalizer` with the given `root` Node.
@@ -25,416 +28,413 @@ import './.dart' show Visitor;
  * @api public
  */
 
-class Normalizer {
-	Normalizer(root, options) {
-  options = or(options, {});
-  Visitor.call(this, root);
-  this.hoist = options['hoist atrules'];
-  this.stack = [];
-  this.map = {};
-  this.imports = [];
-	}
-}
+class Normalizer extends Visitor {
+  var hoist;
 
-/**
- * Inherit from `Visitor.prototype`.
- */
+  List stack;
 
-Normalizer.prototype.__proto__ = Visitor.prototype;
+  Map map;
 
-/**
- * Normalize the node tree.
- *
- * @return {Node}
- * @api private
- */
+  List imports;
 
-normalize() {
+  var charset;
 
-  var ret = this.visit(this.root);
+  int rootIndex;
 
-  if (this.hoist) {
-    // hoist @import
-    if (this.imports.length) ret.nodes = this.imports.concat(ret.nodes);
-
-    // hoist @charset
-    if (this.charset) ret.nodes = [this.charset].concat(ret.nodes);
+  Normalizer(root, options) : super(root) {
+    options = or(options, {});
+    this.hoist = options['hoist atrules'];
+    this.stack = [];
+    this.map = {};
+    this.imports = [];
   }
 
-  return ret;
-}
+  /**
+   * Normalize the node tree.
+   *
+   * @return {Node}
+   * @api private
+   */
 
-/**
- * Bubble up the given `node`.
- *
- * @param {Node} node
- * @api private
- */
+  normalize() {
+    var ret = this.visit(this.root);
 
-bubble(node) {
+    if (this.hoist) {
+      // hoist @import
+      if (this.imports.isNotEmpty) ret.nodes = this.imports.concat(ret.nodes);
 
-  var props = []
-    , other = []
-    , self = this;
+      // hoist @charset
+      if (truthy(this.charset)) ret.nodes = [this.charset].concat(ret.nodes);
+    }
 
-   filterProps(block) {
-    block.nodes.forEach((node) {
-      node = self.visit(node);
-
-      switch (node.nodeName) {
-        case 'property':
-          props.add(node);
-          break;
-        case 'block':
-          filterProps(node);
-          break;
-        default:
-          other.add(node);
-      }
-    });
+    return ret;
   }
 
-  filterProps(node.block);
+  /**
+   * Bubble up the given `node`.
+   *
+   * @param {Node} node
+   * @api private
+   */
 
-  if (props.length) {
-    var selector = new nodes.Selector([new nodes.Literal('&')]);
-    selector.lineno = node.lineno;
-    selector.column = node.column;
-    selector.filename = node.filename;
-    selector.val = '&';
+  bubble(node) {
+    var props = []
+    ,
+        other = []
+    ,
+        self = this;
 
-    var group = new nodes.Group;
-    group.lineno = node.lineno;
-    group.column = node.column;
-    group.filename = node.filename;
+    filterProps(block) {
+      block.nodes.forEach((node) {
+        node = self.visit(node);
 
-    var block = new nodes.Block(node.block, group);
-    block.lineno = node.lineno;
-    block.column = node.column;
-    block.filename = node.filename;
+        switch (node.nodeName) {
+          case 'property':
+            props.add(node);
+            break;
+          case 'block':
+            filterProps(node);
+            break;
+          default:
+            other.add(node);
+        }
+      });
+    }
 
-    props.forEach((prop){
-      block.add(prop);
-    });
+    filterProps(node.block);
 
-    group.add(selector);
-    group.block = block;
+    if (props.length) {
+      var selector = new nodes.Selector([new nodes.Literal('&')]);
+      selector.lineno = node.lineno;
+      selector.column = node.column;
+      selector.filename = node.filename;
+      selector.val = '&';
 
-    node.block.nodes = [];
-    node.block.add(group);
-    other.forEach((n){
-      node.block.add(n);
-    });
+      var group = new nodes.Group();
+      group.lineno = node.lineno;
+      group.column = node.column;
+      group.filename = node.filename;
 
-    var group = this.closestGroup(node.block);
-    if (group) node.group = group.clone();
+      var block = new nodes.Block(node.block, group);
+      block.lineno = node.lineno;
+      block.column = node.column;
+      block.filename = node.filename;
 
-    node.bubbled = true;
-  }
-}
+      props.forEach((prop) {
+        block.add(prop);
+      });
 
-/**
- * Return group closest to the given `block`.
- *
- * @param {Block} block
- * @return {Group}
- * @api private
- */
+      group.add(selector);
+      group.block = block;
 
-closestGroup(block) {
+      node.block.nodes = [];
+      node.block.add(group);
+      other.forEach((n) {
+        node.block.add(n);
+      });
 
-  var parent = block.parent
-    , node;
-  while (parent && (node = parent.node)) {
-    if ('group' == node.nodeName) return node;
-    parent = node.block && node.block.parent;
-  }
-}
+      group = this.closestGroup(node.block);
+      if (group) node.group = group.clone();
 
-/**
- * Visit Root.
- */
-
-visitRoot(block) {
-
-  var ret = new nodes.Root
-    , node;
-
-  for (var i = 0; i < block.nodes.length; ++i) {
-    node = block.nodes[i];
-    switch (node.nodeName) {
-      case 'null':
-      case 'expression':
-      case 'function':
-      case 'unit':
-      case 'atblock':
-        continue;
-      default:
-        this.rootIndex = i;
-        ret.add(this.visit(node));
+      node.bubbled = true;
     }
   }
 
-  return ret;
-}
+  /**
+   * Return group closest to the given `block`.
+   *
+   * @param {Block} block
+   * @return {Group}
+   * @api private
+   */
 
-/**
- * Visit Property.
- */
-
-visitProperty(prop) {
-
-  this.visit(prop.expr);
-  return prop;
-}
-
-/**
- * Visit Expression.
- */
-
-visitExpression(expr) {
-
-  expr.nodes = expr.nodes.map((node){
-    // returns `block` literal if mixin's block
-    // is used as part of a property value
-    if ('block' == node.nodeName) {
-      var literal = new nodes.Literal('block');
-      literal.lineno = expr.lineno;
-      literal.column = expr.column;
-      return literal;
+  closestGroup(block) {
+    var parent = block.parent
+    ,
+        node;
+    while (parent && (node = parent.node)) {
+      if ('group' == node.nodeName) return node;
+      parent = node.block && node.block.parent;
     }
-    return node;
-  });
-  return expr;
-}
+  }
 
-/**
- * Visit Block.
- */
+  /**
+   * Visit Root.
+   */
 
-visitBlock(block) {
+  visitRoot(block) {
+    var ret = new nodes.Root()
+    ,
+        node;
 
-  var node;
-
-  if (block.hasProperties) {
-    for (var i = 0, len = block.nodes.length; i < len; ++i) {
+    for (var i = 0; i < block.nodes.length; ++i) {
       node = block.nodes[i];
       switch (node.nodeName) {
         case 'null':
         case 'expression':
         case 'function':
-        case 'group':
         case 'unit':
         case 'atblock':
           continue;
         default:
-          block.nodes[i] = this.visit(node);
+          this.rootIndex = i;
+          ret.add(this.visit(node));
       }
     }
+
+    return ret;
   }
 
-  // nesting
-  for (var i = 0, len = block.nodes.length; i < len; ++i) {
-    node = block.nodes[i];
-    block.nodes[i] = this.visit(node);
+  /**
+   * Visit Property.
+   */
+
+  visitProperty(prop) {
+    this.visit(prop.expr);
+    return prop;
   }
 
-  return block;
-}
+  /**
+   * Visit Expression.
+   */
 
-/**
- * Visit Group.
- */
-
-visitGroup(group) {
-
-  var stack = this.stack
-    , map = this.map
-    , parts;
-
-  // normalize interpolated selectors with comma
-  group.nodes.forEach((selector, i){
-    if (!~selector.val.indexOf(',')) return;
-    if (~selector.val.indexOf('\\,')) {
-      selector.val = selector.val.replace(new RegExp(r'\\,/'), ',');
-      return;
-    }
-    parts = selector.val.split(',');
-    var root = '/' == selector.val.charAt(0)
-      , part, s;
-    for (var k = 0, len = parts.length; k < len; ++k){
-      part = parts[k].trim();
-      if (root && k > 0 && !~part.indexOf('&')) {
-        part = '/' + part;
+  visitExpression(expr) {
+    expr.nodes = expr.nodes.map((node) {
+      // returns `block` literal if mixin's block
+      // is used as part of a property value
+      if ('block' == node.nodeName) {
+        var literal = new nodes.Literal('block');
+        literal.lineno = expr.lineno;
+        literal.column = expr.column;
+        return literal;
       }
-      s = new nodes.Selector([new nodes.Literal(part)]);
-      s.val = part;
-      s.block = group.block;
-      group.nodes[i++] = s;
+      return node;
+    });
+    return expr;
+  }
+
+  /**
+   * Visit Block.
+   */
+
+  visitBlock(block) {
+    var node;
+
+    if (block.hasProperties) {
+      for (var i = 0, len = block.nodes.length; i < len; ++i) {
+        node = block.nodes[i];
+        switch (node.nodeName) {
+          case 'null':
+          case 'expression':
+          case 'function':
+          case 'group':
+          case 'unit':
+          case 'atblock':
+            continue;
+          default:
+            block.nodes[i] = this.visit(node);
+        }
+      }
     }
-  });
-  stack.add(group.nodes);
 
-  var selectors = utils.compileSelectors(stack, true);
+    // nesting
+    for (var i = 0, len = block.nodes.length; i < len; ++i) {
+      node = block.nodes[i];
+      block.nodes[i] = this.visit(node);
+    }
 
-  // map for extension lookup
-  selectors.forEach((selector){
-    map[selector] = or(map[selector], []);
-    map[selector].add(group);
-  });
+    return block;
+  }
 
-  // extensions
-  this.extend(group, selectors);
+  /**
+   * Visit Group.
+   */
 
-  pop(stack);
-  return group;
-}
+  visitGroup(group) {
+    var stack = this.stack
+    ,
+        map = this.map
+    ,
+        parts;
 
-/**
- * Visit Function.
- */
-
-visitFunction() {
-
-  return nodes.null;
-}
-
-/**
- * Visit Media.
- */
-
-visitMedia(media) {
-
-  var medias = []
-    , group = this.closestGroup(media.block)
-    , parent;
-
-   mergeQueries(block) {
-    block.nodes.forEach((node, i){
-      switch (node.nodeName) {
-        case 'media':
-          node.val = media.val.merge(node.val);
-          medias.add(node);
-          block.nodes[i] = nodes.null;
-          break;
-        case 'block':
-          mergeQueries(node);
-          break;
-        default:
-          if (node.block && node.block.nodes)
-            mergeQueries(node.block);
+    // normalize interpolated selectors with comma
+    group.nodes.forEach((selector, i) {
+      if (!~selector.val.indexOf(',')) return;
+      if (~selector.val.indexOf('\\,')) {
+        selector.val = selector.val.replace(new RegExp(r'\\,/'), ',');
+        return;
+      }
+      parts = selector.val.split(',');
+      var root = '/' == selector.val.charAt(0)
+      ,
+          part,
+          s;
+      for (var k = 0, len = parts.length; k < len; ++k) {
+        part = parts[k].trim();
+        if (root && k > 0 && !~part.indexOf('&')) {
+          part = '/' + part;
+        }
+        s = new nodes.Selector([new nodes.Literal(part)]);
+        s.val = part;
+        s.block = group.block;
+        group.nodes[i++] = s;
       }
     });
+    stack.add(group.nodes);
+
+    var selectors = utils.compileSelectors(stack, true);
+
+    // map for extension lookup
+    selectors.forEach((selector) {
+      map[selector] = or(map[selector], []);
+      map[selector].add(group);
+    });
+
+    // extensions
+    this.extend(group, selectors);
+
+    pop(stack);
+    return group;
   }
 
-  mergeQueries(media.block);
-  this.bubble(media);
+  /**
+   * Visit Function.
+   */
 
-  if (medias.length) {
-    medias.forEach((node){
-      if (group) {
-        group.block.add(node);
-      } else {
-        splice(this.root.nodes, ++this.rootIndex, 0, node);
-      }
-      node = this.visit(node);
-      parent = node.block.parent;
-      if (node.bubbled && (!group || 'group' == parent.node.nodeName)) {
-        node.group.block = node.block.nodes[0].block;
-        node.block.nodes[0] = node.group;
-      }
-    }, this);
+  visitFunction() {
+    return nodes.$null;
   }
-  return media;
-}
 
-/**
- * Visit Supports.
- */
+  /**
+   * Visit Media.
+   */
 
-visitSupports(node) {
+  visitMedia(media) {
+    var medias = [],
+        group = this.closestGroup(media.block),
+        parent;
 
-  this.bubble(node);
-  return node;
-}
-
-/**
- * Visit Atrule.
- */
-
-visitAtrule(node) {
-
-  if (node.block) node.block = this.visit(node.block);
-  return node;
-}
-
-/**
- * Visit Keyframes.
- */
-
-visitKeyframes(node) {
-
-  var frames = node.block.nodes.filter((frame){
-    return frame.block && frame.block.hasProperties;
-  });
-  node.frames = frames.length;
-  return node;
-}
-
-/**
- * Visit Import.
- */
-
-visitImport(node) {
-
-  this.imports.add(node);
-  return this.hoist ? nodes.null : node;
-}
-
-/**
- * Visit Charset.
- */
-
-visitCharset(node) {
-
-  this.charset = node;
-  return this.hoist ? nodes.null : node;
-}
-
-/**
- * Apply `group` extensions.
- *
- * @param {Group} group
- * @param {Array} selectors
- * @api private
- */
-
-extend(group, selectors) {
-
-  var map = this.map
-    , self = this
-    , parent = this.closestGroup(group.block);
-
-  group.extends.forEach((extend){
-    var groups = map[extend.selector];
-    if (!groups) {
-      if (extend.optional) return;
-      var err = new Error('Failed to @extend "' + extend.selector + '"');
-      err.lineno = extend.lineno;
-      err.column = extend.column;
-      throw err;
+    mergeQueries(block) {
+      block.nodes.forEach((node, i) {
+        switch (node.nodeName) {
+          case 'media':
+            node.val = media.val.merge(node.val);
+            medias.add(node);
+            block.nodes[i] = nodes.$null;
+            break;
+          case 'block':
+            mergeQueries(node);
+            break;
+          default:
+            if (node.block && node.block.nodes)
+              mergeQueries(node.block);
+        }
+      });
     }
-    selectors.forEach((selector){
-      var node = new nodes.Selector;
-      node.val = selector;
-      node.inherits = false;
-      groups.forEach((group){
-        // prevent recursive extend
-        if (!parent || (parent != group)) self.extend(group, selectors);
-        group.add(node);
+
+    mergeQueries(media.block);
+    this.bubble(media);
+
+    if (medias.length) {
+      medias.forEach((node) {
+        if (group) {
+          group.block.add(node);
+        } else {
+          splice(this.root.nodes, ++this.rootIndex, 0, node);
+        }
+        node = this.visit(node);
+        parent = node.block.parent;
+        if (node.bubbled && (!group || 'group' == parent.node.nodeName)) {
+          node.group.block = node.block.nodes[0].block;
+          node.block.nodes[0] = node.group;
+        }
+      });
+    }
+    return media;
+  }
+
+  /**
+   * Visit Supports.
+   */
+
+  visitSupports(node) {
+    this.bubble(node);
+    return node;
+  }
+
+  /**
+   * Visit Atrule.
+   */
+
+  visitAtrule(node) {
+    if (node.block) node.block = this.visit(node.block);
+    return node;
+  }
+
+  /**
+   * Visit Keyframes.
+   */
+
+  visitKeyframes(node) {
+    var frames = node.block.nodes.filter((frame) {
+      return frame.block && frame.block.hasProperties;
+    });
+    node.frames = frames.length;
+    return node;
+  }
+
+  /**
+   * Visit Import.
+   */
+
+  visitImport(node) {
+    this.imports.add(node);
+    return this.hoist ? nodes.$null : node;
+  }
+
+  /**
+   * Visit Charset.
+   */
+
+  visitCharset(node) {
+    this.charset = node;
+    return this.hoist ? nodes.$null : node;
+  }
+
+  /**
+   * Apply `group` extensions.
+   *
+   * @param {Group} group
+   * @param {Array} selectors
+   * @api private
+   */
+
+  extend(group, selectors) {
+    var map = this.map,
+        self = this,
+        parent = this.closestGroup(group.block);
+
+    group.$extends.forEach((extend) {
+      var groups = map[extend.selector];
+      if (!groups) {
+        if (extend.optional) return;
+        var err = new Exception('Failed to @extend "' + extend.selector + '"');
+        err.lineno = extend.lineno;
+        err.column = extend.column;
+        throw err;
+      }
+      selectors.forEach((selector) {
+        var node = new nodes.Selector();
+        node.val = selector;
+        node.inherits = false;
+        groups.forEach((group) {
+          // prevent recursive extend
+          if (!parent || (parent != group)) self.extend(group, selectors);
+          group.add(node);
+        });
       });
     });
-  });
 
-  group.block = this.visit(group.block);
+    group.block = this.visit(group.block);
+  }
 }

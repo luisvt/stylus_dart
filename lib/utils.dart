@@ -384,7 +384,7 @@ params(fn){
  * @return {Object} a
  * @api private
  */
-merge(a, b, deep) {
+merge(a, b, [deep]) {
   for (var k in b) {
     if (deep && a[k]) {
       var nodeA = unwrap(a[k]).first

@@ -1,3 +1,4 @@
+import 'package:json_object/json_object.dart';
 
 /*!
  * Stylus - Visitor
@@ -12,23 +13,24 @@
  * @api private
  */
 
-class Visitor {
-	Visitor(root) {
-  this.root = root;
-	}
+class Visitor /*extends JsonObject*/ {
+  var root;
+
+  Visitor(root) {
+    this.root = root;
+  }
+
+
+  /**
+   * Visit the given `node`.
+   *
+   * @param {Node|Array} node
+   * @api public
+   */
+
+  visit(node, [fn]) {
+    var method = 'visit' + node.constructor.name;
+    if (this[method]) return this[method](node);
+    return node;
+  }
 }
-
-/**
- * Visit the given `node`.
- *
- * @param {Node|Array} node
- * @api public
- */
-
-visit(node, fn) {
-
-  var method = 'visit' + node.constructor.name;
-  if (this[method]) return this[method](node);
-  return node;
-}
-

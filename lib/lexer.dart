@@ -10,25 +10,44 @@
  */
 
 import './token.dart' show Token;
+import 'package:node_shims/js.dart';
+import 'nodes/index.dart' as nodes;
+import 'errors.dart' as errors;
 
 /**
  * Expose `Lexer`.
  */
 
-exports = module.exports = Lexer;
-
+//exports = module.exports = Lexer;
 /**
  * Operator aliases.
  */
 
 var alias = {
-    ''and'': '&&'
-  , ''or'': '||'
-  , ''is'': '=='
-  , ''isnt'': '!='
-  , ''is not'': '!='
-  , '':='': '?='
+    'and': '&&'
+  , 'or': '||'
+  , 'is': '=='
+  , 'isnt': '!='
+  , 'is not': '!='
+  , ':=': '?='
 };
+
+class Lexer {
+  List stash;
+
+  List indentStack;
+
+  RegExp indentRe;
+
+  int lineno;
+
+  int column;
+
+  String str;
+
+  var prev;
+
+  bool isURL;
 
 /**
  * Initialize a new `Lexer` with the given `str` and `options`.
@@ -47,15 +66,15 @@ var alias = {
   this.column = 1;
 
   // HACK!
-   comment(str, val,fset, s {
-    var inComment = s.lastIndexOf('/*',) > s.lastIndexOf('*/',)
-      , commentIdx = s.lastIndexOf('//',)
-      , i = s.lastIndexOf('\n',)
+   comment(str, val, offset, s) {
+    var inComment = s.lastIndexOf('/*', offset) > s.lastIndexOf('*/', offset)
+      , commentIdx = s.lastIndexOf('//', offset)
+      , i = s.lastIndexOf('\n', offset)
       , double = 0
       , single = 0;
 
     if (~commentIdx && commentIdx > i) {
-      while (i !=!= offset) {
+      while (i != offset) {
         if ("'" == s[i]) single ? single-- : single++;
         if ('"' == s[i]) double ? double-- : double++;
 
@@ -70,7 +89,7 @@ var alias = {
     return inComment
       ? str
       : val + '\r';
-  };
+  }
 
   // Remove UTF-8 BOM.
   if ('\uFEFF' == str.charAt(0)) str = slice(str, 1);
@@ -81,18 +100,13 @@ var alias = {
     .replace(new RegExp(r'\\ *\n/'), '\r')
     .replace(new RegExp(r'([,(:](?!\/\/[^ ])) *(?:\/\/[^\n]*|\/\*.*?\*\/)?\n\s*/'), comment)
     .replace(new RegExp(r'\s*\n[ \t]*([,)])/'), comment);;
+}
 
-/**
- * Lexer prototype.
- */
-
-Lexer.prototype = {
-  
   /**
    * Custom inspect.
    */
-  
-  'inspect': (){
+
+  inspect(){
     var tok
       , tmp = this.str
       , buf = [];
@@ -101,7 +115,7 @@ Lexer.prototype = {
     }
     this.str = tmp;
     return buf.concat(tok.inspect()).join('\n');
-  },
+  }
 
   /**
    * Lookahead `n` tokens.
@@ -110,13 +124,13 @@ Lexer.prototype = {
    * @return {Object}
    * @api private
    */
-  
-  'lookahead': (n){
+
+  lookahead(n){
     var fetch = n - this.stash.length;
     while (fetch-- > 0) this.stash.add(this.advance());
     return this.stash[--n];
-  },
-  
+  }
+
   /**
    * Consume the given `len`.
    *
@@ -124,16 +138,16 @@ Lexer.prototype = {
    * @api private
    */
 
-  'skip': (len){
+  skip(len){
     var chunk = len[0];
     len = chunk ? chunk.length : len;
-    this.str = this.str.substr(len);
+    this.str = this.str.substring(len);
     if (chunk) {
       this.move(chunk);
     } else {
       this.column += len;
     }
-  },
+  }
 
   /**
    * Move current line and column position.
@@ -142,7 +156,7 @@ Lexer.prototype = {
    * @api private
    */
 
-  'move': (str){
+  move(str){
     var lines = str.match(new RegExp(r'\n/'))
       , idx = str.lastIndexOf('\n');
 
@@ -150,7 +164,7 @@ Lexer.prototype = {
     this.column = ~idx
       ? str.length - idx
       : this.column + str.length;
-  },
+  }
 
   /**
    * Fetch next token including those stashed by peek.
@@ -159,11 +173,11 @@ Lexer.prototype = {
    * @api private
    */
 
-  'next': () {
+  next() {
     var tok = or(this.stashed(), this.advance());
     this.prev = tok;
     return tok;
-  },
+  }
 
   /**
    * Check if the current token is a part of selector.
@@ -172,9 +186,9 @@ Lexer.prototype = {
    * @api private
    */
 
-  'isPartOfSelector': () {
+  isPartOfSelector() {
     var tok = or(this.stash[this.stash.length - 1], this.prev);
-    switch (tok && tok.type) {
+    switch (tok?.type) {
       // #for
       case 'color':
         return 2 == tok.val.raw.length;
@@ -185,7 +199,7 @@ Lexer.prototype = {
         return true;
     }
     return false;
-  },
+  }
 
   /**
    * Fetch next token.
@@ -194,38 +208,39 @@ Lexer.prototype = {
    * @api private
    */
 
-  'advance': () {
+  advance() {
     var column = this.column
       , line = this.lineno
-      , tok = or(this.eos(), this.null())
-      || this.sep()
-      || this.keyword()
-      || this.urlchars()
-      || this.comment()
-      || this.newline()
-      || this.escaped()
-      || this.important()
-      || this.literal()
-      || this.anonFunc()
-      || this.atrule()
-      || this.function()
-      || this.brace()
-      || this.paren()
-      || this.color()
-      || this.string()
-      || this.unit()
-      || this.namedop()
-      || this.boolean()
-      || this.unicode()
-      || this.ident()
-      || this.op()
-      || this.eol()
-      || this.space()
-      || this.selector();
+      , tok = this.eos() ??
+        this.$null()
+      ?? this.sep()
+      ?? this.keyword()
+      ?? this.urlchars()
+      ?? this.comment()
+      ?? this.newline()
+      ?? this.escaped()
+      ?? this.important()
+      ?? this.literal()
+      ?? this.anonFunc()
+      ?? this.atrule()
+      ?? this.function()
+      ?? this.brace()
+      ?? this.paren()
+      ?? this.color()
+      ?? this.string()
+      ?? this.unit()
+      ?? this.namedop()
+      ?? this.boolean()
+      ?? this.unicode()
+      ?? this.ident()
+      ?? this.op()
+      ?? this.eol()
+      ?? this.space()
+      ?? this.selector();
     tok.lineno = line;
     tok.column = column;
     return tok;
-  },
+  }
 
   /**
    * Lookahead a single token.
@@ -233,11 +248,11 @@ Lexer.prototype = {
    * @return {Token}
    * @api private
    */
-  
-  'peek': () {
+
+  peek() {
     return this.lookahead(1);
-  },
-  
+  }
+
   /**
    * Return the next possibly stashed token.
    *
@@ -245,101 +260,101 @@ Lexer.prototype = {
    * @api private
    */
 
-  'stashed': () {
+  stashed() {
     return shift(this.stash);
-  },
+  }
 
   /**
    * EOS | trailing outdents.
    */
 
-  'eos': () {
-    if (this.str.length) return;
-    if (this.indentStack.length) {
+  eos() {
+    if (this.str.isNotEmpty) return null;
+    if (this.indentStack.isNotEmpty) {
       shift(this.indentStack);
       return new Token('outdent');
     } else {
       return new Token('eos');
     }
-  },
+  }
 
   /**
    * url char
    */
 
-  'urlchars': () {
+  urlchars() {
     var captures;
-    if (!this.isURL) return;
-    if (captures = new RegExp(r'^[\/:@.;?&=*!,<>#%0-9]+').exec(this.str)) {
+    if (!this.isURL) return null;
+    if (truthy(captures = new RegExp(r'^[\/:@.;?&=*!,<>#%0-9]+').allMatches(this.str))) {
       this.skip(captures);
       return new Token('literal', new nodes.Literal(captures[0]));
     }
-  },
+  }
 
   /**
    * ';' [ \t]*
    */
 
-  'sep': () {
+  sep() {
     var captures;
-    if (captures = new RegExp(r'^;[ \t]*').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^;[ \t]*').allMatches(this.str))) {
       this.skip(captures);
       return new Token(';');
     }
-  },
+  }
 
   /**
    * '\r'
    */
 
-  'eol': () {
+  eol() {
     if ('\r' == this.str[0]) {
       ++this.lineno;
       this.skip(1);
       return this.advance();
     }
-  },
-  
+  }
+
   /**
    * ' '+
    */
 
-  'space': () {
+  space() {
     var captures;
-    if (captures = new RegExp(r'^([ \t]+)').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^([ \t]+)').allMatches(this.str))) {
       this.skip(captures);
       return new Token('space');
     }
-  },
-  
+  }
+
   /**
    * '\\' . ' '*
    */
-   
-  'escaped': () {
+
+  escaped() {
     var captures;
-    if (captures = new RegExp(r'^\\(.)[ \t]*').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^\\(.)[ \t]*').allMatches(this.str))) {
       var c = captures[1];
       this.skip(captures);
       return new Token('ident', new nodes.Literal(c));
     }
-  },
-  
+  }
+
   /**
    * '@css' ' '* '{' .* '}' ' '*
    */
-  
-  'literal': () {
+
+  literal() {
     // HACK attack !!!
     var captures;
-    if (captures = new RegExp(r'^@css[ \t]*\{').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^@css[ \t]*\{').allMatches(this.str))) {
       this.skip(captures);
       var c
         , braces = 1
         , css = ''
         , node;
-      while (c = this.str[0]) {
-        this.str = this.str.substr(1);
+      while (truthy(c = this.str[0])) {
+        this.str = this.str.substring(1);
         switch (c) {
           case '{': ++braces; break;
           case '}': --braces; break;
@@ -351,45 +366,45 @@ Lexer.prototype = {
         css += c;
         if (!braces) break;
       }
-      css = css.replace(new RegExp(r'\s*}$'), '');
+      css = css.replaceAll(new RegExp(r'\s*}$'), '');
       node = new nodes.Literal(css);
       node.css = true;
       return new Token('literal', node);
     }
-  },
-  
+  }
+
   /**
    * '!important' ' '*
    */
-  
-  'important': () {
+
+  important() {
     var captures;
-    if (captures = new RegExp(r'^!important[ \t]*').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^!important[ \t]*').allMatches(this.str))) {
       this.skip(captures);
       return new Token('ident', new nodes.Literal('!important'));
     }
-  },
-  
+  }
+
   /**
    * '{' | '}'
    */
-  
-  'brace': () {
+
+  brace() {
     var captures;
-    if (captures = new RegExp(r'^([{}])').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^([{}])').allMatches(this.str))) {
       this.skip(1);
       var brace = captures[1];
       return new Token(brace, brace);
     }
-  },
-  
+  }
+
   /**
    * '(' | ')' ' '*
    */
-  
-  'paren': () {
+
+  paren() {
     var captures;
-    if (captures = new RegExp(r'^([()])([ \t]*)').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^([()])([ \t]*)').allMatches(this.str))) {
       var paren = captures[1];
       this.skip(captures);
       if (')' == paren) this.isURL = false;
@@ -397,26 +412,26 @@ Lexer.prototype = {
       tok.space = captures[2];
       return tok;
     }
-  },
-  
+  }
+
   /**
    * 'null'
    */
-  
-  'null': () {
+
+  $null() {
     var captures
       , tok;
-    if (captures = new RegExp(r'^(null)\b[ \t]*').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^(null)\b[ \t]*').allMatches(this.str))) {
       this.skip(captures);
       if (this.isPartOfSelector()) {
         tok = new Token('ident', new nodes.Ident(captures[0]));
       } else {
-        tok = new Token('null', nodes.null);
+        tok = new Token('null', nodes.$null);
       }
       return tok;
     }
-  },
-  
+  }
+
   /**
    *   'if'
    * | 'else'
@@ -425,11 +440,11 @@ Lexer.prototype = {
    * | 'for'
    * | 'in'
    */
-  
-  'keyword': () {
+
+  keyword() {
     var captures
       , tok;
-    if (captures = new RegExp(r'^(return|if|else|unless|for|in)\b[ \t]*').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^(return|if|else|unless|for|in)\b[ \t]*').allMatches(this.str))) {
       var keyword = captures[1];
       this.skip(captures);
       if (this.isPartOfSelector()) {
@@ -439,8 +454,8 @@ Lexer.prototype = {
       }
       return tok;
     }
-  },
-  
+  }
+
   /**
    *   'not'
    * | 'and'
@@ -451,11 +466,11 @@ Lexer.prototype = {
    * | 'is a'
    * | 'is defined'
    */
-  
-  'namedop': () {
+
+  namedop() {
     var captures
       , tok;
-    if (captures = new RegExp(r'^(not|and|or|is a|is defined|isnt|is not|is)(?!-)\b([ \t]*)').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^(not|and|or|is a|is defined|isnt|is not|is)(?!-)\b([ \t]*)').allMatches(this.str))) {
       var op = captures[1];
       this.skip(captures);
       if (this.isPartOfSelector()) {
@@ -467,7 +482,7 @@ Lexer.prototype = {
       tok.space = captures[2];
       return tok;
     }
-  },
+  }
 
   /**
    *   ','
@@ -505,10 +520,10 @@ Lexer.prototype = {
    * | '..'
    * | '...'
    */
-  
-  'op': () {
+
+  op() {
     var captures;
-    if (captures = new RegExp(r'^([.]{1,3}|&&|\|\||[!<>=?:]=|\*\*|[-+*\/%]=?|[,=?:!~<>&\[\]])([ \t]*)').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^([.]{1,3}|&&|\|\||[!<>=?:]=|\*\*|[-+*\/%]=?|[,=?:!~<>&\[\]])([ \t]*)').allMatches(this.str))) {
       var op = captures[1];
       this.skip(captures);
       op = or(alias[op], op);
@@ -517,13 +532,13 @@ Lexer.prototype = {
       this.isURL = false;
       return tok;
     }
-  },
+  }
 
   /**
    * '@('
    */
 
-  'anonFunc': () {
+  anonFunc() {
     var tok;
     if ('@' == this.str[0] && '(' == this.str[1]) {
       this.skip(2);
@@ -531,15 +546,15 @@ Lexer.prototype = {
       tok.anonymous = true;
       return tok;
     }
-  },
+  }
 
   /**
    * '@' (-(\w+)-)?[a-zA-Z0-9-_]+
    */
 
-  'atrule': () {
+  atrule() {
     var captures;
-    if (captures = new RegExp(r'^@(?:-(\w+)-)?([a-zA-Z0-9-_]+)[ \t]*').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^@(?:-(\w+)-)?([a-zA-Z0-9-_]+)[ \t]*').allMatches(this.str))) {
       this.skip(captures);
       var vendor = captures[1]
         , type = captures[2]
@@ -566,13 +581,13 @@ Lexer.prototype = {
           return new Token('atrule', (vendor ? '-' + vendor + '-' + type : type));
       }
     }
-  },
+  }
 
   /**
    * '//' *
    */
-  
-  'comment': () {
+
+  comment() {
     // Single line
     if ('/' == this.str[0] && '/' == this.str[1]) {
       var end = this.str.indexOf('\n');
@@ -585,7 +600,7 @@ Lexer.prototype = {
     if ('/' == this.str[0] && '*' == this.str[1]) {
       var end = this.str.indexOf('*/');
       if (-1 == end) end = this.str.length;
-      var str = this.str.substr(0, end + 2)
+      var str = this.str.substring(0, end + 2)
         , lines = str.split(new RegExp(r'\n|\r')).length - 1
         , suppress = true
         , inline = false;
@@ -599,83 +614,83 @@ Lexer.prototype = {
       if (this.prev && ';' == this.prev.type) inline = true;
       return new Token('comment', new nodes.Comment(str, suppress, inline));
     }
-  },
+  }
 
   /**
    * 'true' | 'false'
    */
-  
-  'boolean': () {
+
+  boolean() {
     var captures;
-    if (captures = new RegExp(r'^(true|false)\b([ \t]*)').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^(true|false)\b([ \t]*)').allMatches(this.str))) {
       var val = nodes.Boolean('true' == captures[1]);
       this.skip(captures);
       var tok = new Token('boolean', val);
       tok.space = captures[2];
       return tok;
     }
-  },
+  }
 
   /**
    * 'U+' [0-9A-Fa-f?]{1,6}(?:-[0-9A-Fa-f]{1,6})?
    */
 
-  'unicode': () {
+  unicode() {
     var captures;
-    if (captures = new RegExp(r'^u\+[0-9a-f?]{1,6}(?:-[0-9a-f]{1,6})?/').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^u\+[0-9a-f?]{1,6}(?:-[0-9a-f]{1,6})?/').allMatches(this.str))) {
       this.skip(captures);
       return new Token('literal', new nodes.Literal(captures[0]));
     }
-  },
+  }
 
   /**
    * -*[_a-zA-Z$] [-\w\d$]* '('
    */
-  
-  'function': () {
+
+  function() {
     var captures;
-    if (captures = new RegExp(r'^(-*[_a-zA-Z$][-\w\d$]*)\(([ \t]*)').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^(-*[_a-zA-Z$][-\w\d$]*)\(([ \t]*)').allMatches(this.str))) {
       var name = captures[1];
       this.skip(captures);
       this.isURL = 'url' == name;
       var tok = new Token('function', new nodes.Ident(name));
       tok.space = captures[2];
       return tok;
-    } 
-  },
+    }
+  }
 
   /**
    * -*[_a-zA-Z$] [-\w\d$]*
    */
-  
-  'ident': () {
+
+  ident() {
     var captures;
-    if (captures = new RegExp(r'^-*[_a-zA-Z$][-\w\d$]*').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^-*[_a-zA-Z$][-\w\d$]*').allMatches(this.str))) {
       this.skip(captures);
       return new Token('ident', new nodes.Ident(captures[0]));
     }
-  },
+  }
 
   /**
    * '\n' ' '+
    */
 
-  'newline': () {
+  newline() {
     var captures, re;
 
     // we have established the indentation regexp
-    if (this.indentRe){
-      captures = this.indentRe.exec(this.str);
+    if (truthy(this.indentRe)){
+      captures = this.indentRe.allMatches(this.str);
     // figure out if we are using tabs or spaces
     } else {
       // try tabs
       re = new RegExp(r'^\n([\t]*)[ \t]*');
-      captures = re.exec(this.str);
+      captures = re.allMatches(this.str);
 
       // nope, try spaces
       if (captures && !captures[1].length) {
         re = new RegExp(r'^\n([ \t]*)');
-        captures = re.exec(this.str);
+        captures = re.allMatches(this.str);
       }
 
       // established
@@ -696,8 +711,8 @@ Lexer.prototype = {
       if ('\n' == this.str[0]) return this.advance();
 
       // Outdent
-      if (this.indentStack.length && indents < this.indentStack[0]) {
-        while (this.indentStack.length && this.indentStack[0] > indents) {
+      if (this.indentStack.isNotEmpty && indents < this.indentStack[0]) {
+        while (this.indentStack.isNotEmpty && this.indentStack[0] > indents) {
           this.stash.add(new Token('outdent'));
           shift(this.indentStack);
         }
@@ -713,15 +728,15 @@ Lexer.prototype = {
 
       return tok;
     }
-  },
+  }
 
   /**
    * '-'? (digit+ | digit* '.' digit+) unit
    */
 
-  'unit': () {
+  unit() {
     var captures;
-    if (captures = new RegExp(r'^(-)?(\d+\.\d+|\d+|\.\d+)(%|[a-zA-Z]+)?[ \t]*').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^(-)?(\d+\.\d+|\d+|\.\d+)(%|[a-zA-Z]+)?[ \t]*').allMatches(this.str))) {
       this.skip(captures);
       var n = double.parse(captures[2]);
       if ('-' == captures[1]) n = -n;
@@ -729,72 +744,73 @@ Lexer.prototype = {
       node.raw = captures[0];
       return new Token('unit', node);
     }
-  },
+  }
 
   /**
    * '"' [^"]+ '"' | "'"" [^']+ "'"
    */
 
-  'string': () {
+  string() {
     var captures;
-    if (captures = new RegExp(r'^("[^"]*"|'[^']*')[ \t]*').exec(this.str)) {
+    if (truthy(captures = new RegExp('^("[^"]*"|\'[^\']*\')[ \\t]*').allMatches(this.str))) {
       var str = captures[1]
         , quote = captures[0][0];
       this.skip(captures);
-      str = slice(str, 1,-1).replace(new RegExp(r'\\n/'), '\n');
+      str = str.substring(1,-1).replace(new RegExp(r'\\n/'), '\n');
       return new Token('string', new nodes.String(str, quote));
     }
-  },
+  }
 
   /**
    * #rrggbbaa | #rrggbb | #rgba | #rgb | #nn | #n
    */
 
-  'color': () {
-    return or(this.rrggbbaa(), this.rrggbb())
-      || this.rgba()
-      || this.rgb()
-      || this.nn()
-      || this.n()
-  },
+  color() {
+    return this.rrggbbaa()
+        ?? this.rrggbb()
+      ?? this.rgba()
+      ?? this.rgb()
+      ?? this.nn()
+      ?? this.n();
+  }
 
   /**
    * #n
    */
-  
-  'n': () {
+
+  n() {
     var captures;
-    if (captures = new RegExp(r'^#([a-fA-F0-9]{1})[ \t]*').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^#([a-fA-F0-9]{1})[ \t]*').allMatches(this.str))) {
       this.skip(captures);
       var n = int.parse(captures[1] + captures[1], radix: 16)
         , color = new nodes.RGBA(n, n, n, 1);
       color.raw = captures[0];
-      return new Token('color', color); 
+      return new Token('color', color);
     }
-  },
+  }
 
   /**
    * #nn
    */
-  
-  'nn': () {
+
+  nn() {
     var captures;
-    if (captures = new RegExp(r'^#([a-fA-F0-9]{2})[ \t]*').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^#([a-fA-F0-9]{2})[ \t]*').allMatches(this.str))) {
       this.skip(captures);
       var n = int.parse(captures[1], radix: 16)
         , color = new nodes.RGBA(n, n, n, 1);
       color.raw = captures[0];
-      return new Token('color', color); 
+      return new Token('color', color);
     }
-  },
+  }
 
   /**
    * #rgb
    */
-  
-  'rgb': () {
+
+  rgb() {
     var captures;
-    if (captures = new RegExp(r'^#([a-fA-F0-9]{3})[ \t]*').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^#([a-fA-F0-9]{3})[ \t]*').allMatches(this.str))) {
       this.skip(captures);
       var rgb = captures[1]
         , r = int.parse(rgb[0] + rgb[0], radix: 16)
@@ -802,17 +818,17 @@ Lexer.prototype = {
         , b = int.parse(rgb[2] + rgb[2], radix: 16)
         , color = new nodes.RGBA(r, g, b, 1);
       color.raw = captures[0];
-      return new Token('color', color); 
+      return new Token('color', color);
     }
-  },
-  
+  }
+
   /**
    * #rgba
    */
-  
-  'rgba': () {
+
+  rgba() {
     var captures;
-    if (captures = new RegExp(r'^#([a-fA-F0-9]{4})[ \t]*').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^#([a-fA-F0-9]{4})[ \t]*').allMatches(this.str))) {
       this.skip(captures);
       var rgb = captures[1]
         , r = int.parse(rgb[0] + rgb[0], radix: 16)
@@ -821,17 +837,17 @@ Lexer.prototype = {
         , a = int.parse(rgb[3] + rgb[3], radix: 16)
         , color = new nodes.RGBA(r, g, b, a/255);
       color.raw = captures[0];
-      return new Token('color', color); 
+      return new Token('color', color);
     }
-  },
-  
+  }
+
   /**
    * #rrggbb
    */
-  
-  'rrggbb': () {
+
+  rrggbb() {
     var captures;
-    if (captures = new RegExp(r'^#([a-fA-F0-9]{6})[ \t]*').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^#([a-fA-F0-9]{6})[ \t]*').allMatches(this.str))) {
       this.skip(captures);
       var rgb = captures[1]
         , r = int.parse(rgb.substr(0, 2), radix: 16)
@@ -839,17 +855,17 @@ Lexer.prototype = {
         , b = int.parse(rgb.substr(4, 2), radix: 16)
         , color = new nodes.RGBA(r, g, b, 1);
       color.raw = captures[0];
-      return new Token('color', color); 
+      return new Token('color', color);
     }
-  },
-  
+  }
+
   /**
    * #rrggbbaa
    */
-  
-  'rrggbbaa': () {
+
+  rrggbbaa() {
     var captures;
-    if (captures = new RegExp(r'^#([a-fA-F0-9]{8})[ \t]*').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^#([a-fA-F0-9]{8})[ \t]*').allMatches(this.str))) {
       this.skip(captures);
       var rgb = captures[1]
         , r = int.parse(rgb.substr(0, 2), radix: 16)
@@ -858,20 +874,20 @@ Lexer.prototype = {
         , a = int.parse(rgb.substr(6, 2), radix: 16)
         , color = new nodes.RGBA(r, g, b, a/255);
       color.raw = captures[0];
-      return new Token('color', color); 
+      return new Token('color', color);
     }
-  },
-  
+  }
+
   /**
    * ^|[^\n,;]+
    */
-  
-  'selector': () {
+
+  selector() {
     var captures;
-    if (captures = new RegExp(r'^\^|.*?(?=\/\/(?![^\[]*\])|[,\n{])').exec(this.str)) {
+    if (truthy(captures = new RegExp(r'^\^|.*?(?=\/\/(?![^\[]*\])|[,\n{])').allMatches(this.str))) {
       var selector = captures[0];
       this.skip(captures);
       return new Token('selector', selector);
     }
   }
-};
+}

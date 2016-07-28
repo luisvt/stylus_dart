@@ -12,56 +12,57 @@
  */
 
 class Scope {
-	Scope() {
-  this.locals = {};
-	}
-}
+  Map locals;
 
-/**
- * Add `ident` node to the current scope.
- *
- * @param {Ident} ident
- * @api private
- */
+  Scope() {
+    this.locals = {};
+  }
 
-add(ident) {
+  /**
+   * Add `ident` node to the current scope.
+   *
+   * @param {Ident} ident
+   * @api private
+   */
 
-  this.locals[ident.name] = ident.val;
-}
+  add(ident) {
+    this.locals[ident.name] = ident.val;
+  }
 
-/**
- * Lookup the given local variable `name`.
- *
- * @param {String} name
- * @return {Node}
- * @api private
- */
+  /**
+   * Lookup the given local variable `name`.
+   *
+   * @param {String} name
+   * @return {Node}
+   * @api private
+   */
 
-lookup(name) {
+  lookup(name) {
+    return hasOwnProperty(this.locals, name) ? this.locals[name] : null;
+  }
 
-  return hasOwnProperty(this.locals, name) ? this.locals[name] : null;
-}
+  /**
+   * Custom inspect.
+   *
+   * @return {String}
+   * @api public
+   */
 
-/**
- * Custom inspect.
- *
- * @return {String}
- * @api public
- */
+  inspect() {
+    var keys = this.locals.keys.map((key) {
+      return '@' + key;
+    });
+    return '[Scope'
+        + (keys.length ? ' ' + keys.join(', ') : '')
+        + ']';
+  }
 
-inspect() {
-
-  var keys = Object.keys(this.locals).map((key){ return '@' + key; });
-  return '[Scope'
-    + (keys.length ? ' ' + keys.join(', ') : '')
-    + ']';
-}
-
-/**
- * @param {Object} obj
- * @param {String} propName
- * @returns {Boolean}
- */
- hasOwnProperty(obj, propName) {
-  return super.hasOwnProperty( propName);
+  /**
+   * @param {Object} obj
+   * @param {String} propName
+   * @returns {Boolean}
+   */
+  hasOwnProperty(obj, propName) {
+    return obj.hasOwnProperty(propName);
+  }
 }

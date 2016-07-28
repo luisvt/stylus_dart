@@ -11,132 +11,126 @@
  * @api private
  */
 
-class Stack {
-	Stack() {
-  List.apply(this, arguments);
-	}
-}
+class Stack implements List {
 
-/**
- * Inherit from `Array.prototype`.
- */
-
-Stack.prototype.__proto__ = List.prototype;
-
-/**
- * Push the given `frame`.
- *
- * @param {Frame} frame
- * @api public
- */
-
-push(frame) {
-
-  frame.stack = this;
-  frame.parent = this.currentFrame;
-  return [].push.apply(this, arguments);
-}
-
-/**
- * Return the current stack `Frame`.
- *
- * @return {Frame}
- * @api private
- */
-
-Stack.prototype.__defineGetter__('currentFrame', (){
-  return this[this.length - 1];
-});
-
-/**
- * Lookup stack frame for the given `block`.
- *
- * @param {Block} block
- * @return {Frame}
- * @api private
- */
-
-getBlockFrame(block) {
-
-  for (var i = 0; i < this.length; ++i) {
-    if (block == this[i].block) {
-      return this[i];
-    }
+  Stack([int length]) {
+//  List.apply(this, arguments);
   }
-}
 
-/**
- * Lookup the given local variable `name`, relative
- * to the lexical scope of the current frame's `Block`.
- *
- * When the result of a lookup is an identifier
- * a recursive lookup is performed, defaulting to
- * returning the identifier itself.
- *
- * @param {String} name
- * @return {Node}
- * @api private
- */
+  /**
+   * Push the given `frame`.
+   *
+   * @param {Frame} frame
+   * @api public
+   */
 
-lookup(name) {
+  add(frame) {
+    frame.stack = this;
+    frame.parent = this.currentFrame;
+    return [].add.apply(this, arguments);
+  }
 
-  var block = this.currentFrame.block
-    , val
-    , ret;
+  /**
+   * Return the current stack `Frame`.
+   *
+   * @return {Frame}
+   * @api private
+   */
 
-  do {
-    var frame = this.getBlockFrame(block);
-    if (frame && (val = frame.lookup(name))) {
-      return val;
-    }
-  } while (block = block.parent);
-}
+  get currentFrame {
+    return this[this.length - 1];
+  }
 
-/**
- * Custom inspect.
- *
- * @return {String}
- * @api private
- */
+  /**
+   * Lookup stack frame for the given `block`.
+   *
+   * @param {Block} block
+   * @return {Frame}
+   * @api private
+   */
 
-inspect() {
-
-  return this.reverse().map((frame){
-    return frame.inspect();
-  }).join('\n');
-}
-
-/**
- * Return stack string formatted as:
- *
- *   at <context> (<filename>:<lineno>:<column>)
- *
- * @return {String}
- * @api private
- */
-
-toString() {
-
-  var block
-    , node
-    , buf = []
-    , location
-    , len = this.length;
-
-  while (len--) {
-    block = this[len].block;
-    if (node = block.node) {
-      location = '(' + node.filename + ':' + (node.lineno + 1) + ':' + node.column + ')';
-      switch (node.nodeName) {
-        case 'function':
-          buf.add('    at ' + node.name + '() ' + location);
-          break;
-        case 'group':
-          buf.add('    at "' + node.nodes[0].val + '" ' + location);
-          break;
+  getBlockFrame(block) {
+    for (var i = 0; i < this.length; ++i) {
+      if (block == this[i].block) {
+        return this[i];
       }
     }
   }
 
-  return buf.join('\n');
+  /**
+   * Lookup the given local variable `name`, relative
+   * to the lexical scope of the current frame's `Block`.
+   *
+   * When the result of a lookup is an identifier
+   * a recursive lookup is performed, defaulting to
+   * returning the identifier itself.
+   *
+   * @param {String} name
+   * @return {Node}
+   * @api private
+   */
+
+  lookup(name) {
+    var block = this.currentFrame.block,
+        val,
+        ret;
+
+    do {
+      var frame = this.getBlockFrame(block);
+      if (frame && (val = frame.lookup(name))) {
+        return val;
+      }
+    } while (block = block.parent);
+  }
+
+  /**
+   * Custom inspect.
+   *
+   * @return {String}
+   * @api private
+   */
+
+  inspect() {
+    return this.reverse().map((frame) {
+      return frame.inspect();
+    }).join('\n');
+  }
+
+  /**
+   * Return stack string formatted as:
+   *
+   *   at <context> (<filename>:<lineno>:<column>)
+   *
+   * @return {String}
+   * @api private
+   */
+
+  toString() {
+    var block
+    ,
+        node
+    ,
+        buf = []
+    ,
+        location
+    ,
+        len = this.length;
+
+    while (len--) {
+      block = this[len].block;
+      if (node = block.node) {
+        location = '(' + node.filename + ':' + (node.lineno + 1) + ':' + node.column + ')';
+        switch (node.nodeName) {
+          case 'function':
+            buf.add('    at ' + node.name + '() ' + location);
+            break;
+          case 'group':
+            buf.add('    at "' + node.nodes[0].val + '" ' + location);
+            break;
+        }
+      }
+    }
+
+    return buf.join('\n');
+  }
 }

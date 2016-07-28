@@ -19,52 +19,49 @@ import './scope.dart' show Scope;
  */
 
 class Frame {
-	Frame(block) {
-  this._scope = false == block.scope
-    ? null
-    : new Scope;
-  this.block = block;
-	}
-}
+  Scope _scope;
 
-/**
- * Return this frame's scope or the parent scope
- * for scope-less blocks.
- *
- * @return {Scope}
- * @api public
- */
+  var block;
 
-Frame.prototype.__defineGetter__('scope', (){
-  return this._scope || this.parent.scope;
-});
+  var parent;
 
-/**
- * Lookup the given local variable `name`.
- *
- * @param {String} name
- * @return {Node}
- * @api private
- */
+  Frame(block) {
+    this._scope = false == block.scope
+        ? null
+        : new Scope();
+    this.block = block;
+  }
 
-lookup(name) {
+  /**
+   * Return this frame's scope or the parent scope
+   * for scope-less blocks.
+   *
+   * @return {Scope}
+   * @api public
+   */
+  get scope {
+    return this._scope ?? this.parent.scope;
+  }
 
-  return this.scope.lookup(name)
+  /**
+   * Lookup the given local variable `name`.
+   *
+   * @param {String} name
+   * @return {Node}
+   * @api private
+   */
+  lookup(name) {
+    return this.scope.lookup(name);
+  }
 
-}
-
-/**
- * Custom inspect.
- *
- * @return {String}
- * @api public
- */
-
-inspect() {
-
-  return '[Frame '
-    + (false == this.block.scope
-        ? 'scope-less'
-        : this.scope.inspect())
-    + ']';
+  /**
+   * Custom inspect.
+   */
+  String inspect() {
+    return '[Frame '
+        + (false == this.block.scope
+            ? 'scope-less'
+            : this.scope.inspect())
+        + ']';
+  }
 }

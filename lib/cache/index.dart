@@ -10,7 +10,7 @@ import 'fs.dart';
  * @return {Object}
  * @api private
  */
-getCache(name, options) {
+getCache(name, [options]) {
   switch (name) {
    case 'fs':
      return new FSCache(options);

@@ -28,7 +28,7 @@ class Token {
 
   var column;
 
-  Token(type, val) {
+  Token(type, [val]) {
     this.type = type;
     this.val = val;
   }

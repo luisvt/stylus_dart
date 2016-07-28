@@ -9,7 +9,9 @@
  * Module dependencies.
  */
 
-import './.dart' show Visitor;
+import 'package:node_shims/js.dart';
+import 'package:stylus_dart/visitor/index.dart';
+import 'package:stylus_dart/stack/index.dart';
 
 /**
  * Import `file` and return Block node.
@@ -106,12 +108,42 @@ import './.dart' show Visitor;
  * @api private
  */
 
-class Evaluator {
-	Evaluator(root, options) {
+class Evaluator extends Visitor {
+  var functions;
+
+  Stack stack;
+
+  var imports;
+
+  var globals;
+
+  var paths;
+
+  var prefix;
+
+  var filename;
+
+  var includeCSS;
+
+  var resolveURL;
+
+  var warnings;
+
+  var options;
+
+  List calling;
+
+  List importStack;
+
+  Map requireHistory;
+
+  int $return;
+
+	Evaluator(root, options) : super(root) {
   options = or(options, {});
-  Visitor.call(this, root);
+//  Visitor.call(this, root);
   var functions = this.functions = options.functions || {};
-  this.stack = new Stack;
+  this.stack = new Stack();
   this.imports = options.imports || [];
   this.globals = options.globals || {};
   this.paths = options.paths || [];
@@ -128,15 +160,8 @@ class Evaluator {
   this.calling = []; // TODO: remove, use stack
   this.importStack = [];
   this.requireHistory = {};
-  this.return = 0;
+  this.$return = 0;
 	}
-}
-
-/**
- * Inherit from `Visitor.prototype`.
- */
-
-Evaluator.prototype.__proto__ = Visitor.prototype;
 
 /**
  * Proxy visit to expose node line numbers.
@@ -146,7 +171,7 @@ Evaluator.prototype.__proto__ = Visitor.prototype;
  * @api private
  */
 
-var visit = Visitor.prototype.visit;
+//var visit = Visitor.prototype.visit;
 visit(node) {
 
   try {

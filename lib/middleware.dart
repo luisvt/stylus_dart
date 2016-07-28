@@ -9,6 +9,9 @@
  */
 
 import './stylus.dart' show stylus;
+import 'package:node_shims/js.dart';
+import 'package:json_object/json_object.dart';
+import 'package:node_shims/path.dart';
 
 /**
  * Import map.
@@ -71,12 +74,12 @@ var imports = {};
  * @api public
  */
 
-module.exports = (options){
-  options = or(options, {});
+middleware(options) {
+  options = or(options, new JsonObject());
 
   // Accept src/dest dir
-  if ('string' == typeof options) {
-    options = { 'src': options };
+  if (options is String) {
+    options = new JsonObject.fromMap({ 'src': options});
   }
 
   // Force compilation
@@ -84,35 +87,19 @@ module.exports = (options){
 
   // Source dir required
   var src = options.src;
-  if (!src) throw new Error('stylus.middleware() requires "src" directory');
+  if (!src) throw new Exception('stylus.middleware() requires "src" directory');
 
   // Default dest dir to source
   var dest = options.dest || src;
 
-  // Default compile callback
-  options.compile = options.compile || (str, path){
-    // inline sourcemap
-    if (options.sourcemap) {
-      if ('boolean' == typeof options.sourcemap)
-        options.sourcemap = {};
-      options.sourcemap.inline = true;
-    }
-
-    return stylus(str)
-      .set('filename', path)
-      .set('compress', options.compress)
-      .set('firebug', options.firebug)
-      .set('linenos', options.linenos)
-      .set('sourcemap', options.sourcemap);
-  };
-
   // Middleware
-  return  stylus(req, res, next){
+  stylus(req, [res, next]) {
     if ('GET' != req.method && 'HEAD' != req.method) return next();
-    var path = url.parse(req.url).pathname;
-    if (new RegExp(r'\.css$').test(path)) {
-
-      if ( dest is String) {
+    var path = url
+        .parse(req.url)
+        .pathname;
+    if (new RegExp(r'\.css$').hasMatch(path)) {
+      if (dest is String) {
         // check for dest-path overlap
         var overlap = compare(dest, path).length;
         if ('/' == path.charAt(0)) overlap++;
@@ -120,36 +107,33 @@ module.exports = (options){
       }
 
       var cssPath, stylusPath;
-      cssPath = ( dest is Function)
-        ? dest(path)
-        : join(dest, path);
-      stylusPath = ( src is Function)
-        ? src(path)
-        : join(src, path.replace('.css', '.styl'));
+      cssPath = (dest is Function)
+          ? dest(path)
+          : join([dest, path]);
+      stylusPath = (src is Function)
+          ? src(path)
+          : join([src, path.replace('.css', '.styl')]);
 
       // Ignore ENOENT to fall through as 404
-       error(err) {
+      error(err) {
         next('ENOENT' == err.code
-          ? null
-          : err);
+            ? null
+            : err);
       }
 
-      // Force
-      if (force) return compile();
-
       // Compile to cssPath
-       compile() {
-        debug('read %s', cssPath);
-        fs.readFile(stylusPath, 'utf8', (err, str){
+      compile() {
+        print('read %s' + cssPath);
+        fs.readFile(stylusPath, 'utf8', (err, str) {
           if (err) return error(err);
           var style = options.compile(str, stylusPath);
           var paths = style.options._imports = [];
           imports[stylusPath] = null;
-          style.render((err, css){
+          style.render((err, css) {
             if (err) return next(err);
-            debug('render %s', stylusPath);
+            print('render %s' + stylusPath);
             imports[stylusPath] = paths;
-            mkdirp(dirname(cssPath), int.parse('0700', radix: 8), (err){
+            mkdirp(dirname(cssPath), int.parse('0700', radix: 8), (err) {
               if (err) return error(err);
               fs.writeFile(cssPath, css, 'utf8', next);
             });
@@ -157,18 +141,21 @@ module.exports = (options){
         });
       }
 
+      // Force
+      if (force) return compile();
+
       // Re-compile on server restart, disregarding
       // mtimes since we need to map imports
       if (!imports[stylusPath]) return compile();
 
       // Compare mtimes
-      fs.stat(stylusPath, (err, stylusStats){
+      fs.stat(stylusPath, (err, stylusStats) {
         if (err) return error(err);
-        fs.stat(cssPath, (err, cssStats){
+        fs.stat(cssPath, (err, cssStats) {
           // CSS has not been compiled, compile it!
           if (err) {
             if ('ENOENT' == err.code) {
-              debug('not found %s', cssPath);
+              print('not found %s' + cssPath);
               compile();
             } else {
               next(err);
@@ -176,14 +163,14 @@ module.exports = (options){
           } else {
             // Source has changed, compile it
             if (stylusStats.mtime > cssStats.mtime) {
-              debug('modified %s', cssPath);
+              print('modified %s' + cssPath);
               compile();
-            // Already compiled, check imports
+              // Already compiled, check imports
             } else {
-              checkImports(stylusPath, (changed){
+              checkImports(stylusPath, (changed) {
                 if (debug && changed.length) {
                   changed.forEach((path) {
-                    debug('modified import %s', path);
+                    print('modified import %s' + path);
                   });
                 }
                 changed.length ? compile() : next();
@@ -192,11 +179,30 @@ module.exports = (options){
           }
         });
       });
-    } {
-      next();
     }
-  };
 
+    next();
+  }
+
+  // Default compile callback
+  options.compile = or(options.compile, (str, path) {
+    // inline sourcemap
+    if (options.sourcemap) {
+      if (options.sourcemap is bool)
+        options.sourcemap = {};
+      options.sourcemap.inline = true;
+    }
+
+    return stylus(str)
+        .set('filename', path)
+        .set('compress', options.compress)
+        .set('firebug', options.firebug)
+        .set('linenos', options.linenos)
+        .set('sourcemap', options.sourcemap);
+  });
+
+  return stylus;
+}
 /**
  * Check `path`'s imports to see if they have been altered.
  *

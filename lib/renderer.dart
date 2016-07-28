@@ -13,6 +13,11 @@ import './parser.dart' show Parser;
 import 'package:node_shims/js.dart';
 import 'package:node_shims/path.dart';
 import 'package:json_object/json_object.dart';
+import 'package:stylus_dart/visitor/evaluator.dart';
+import 'package:stylus_dart/nodes/index.dart' as nodes;
+import 'package:stylus_dart/visitor/normalizer.dart';
+import 'utils.dart' as utils;
+import './visitor/deps-resolver.dart' show DepsResolver;
 
 /**
  * Expose `Renderer`.
@@ -35,13 +40,21 @@ class Renderer extends EventEmitter {
 
   Parser parser;
 
+  var events;
+
+  var evaluator;
+
+  var nodes;
+
+  var sourcemap;
+
 	Renderer(str, options) {
   options = or(options, {});
   options.globals = or(options.globals, {});
   options.functions = or(options.functions, {});
   options.use = or(options.use, []);
   options.use = options.use is List ? options.use : [options.use];
-  options.imports = [join(__dirname, 'functions')];
+  options.imports = [join([__dirname, 'functions'])];
   options.paths = or(options.paths, []);
   options.filename = or(options.filename, 'stylus');
   options.Evaluator = or(options.Evaluator, Evaluator);
@@ -127,8 +140,6 @@ deps(filename) {
 
   var opts = utils.merge({ 'cache': false }, this.options);
   if (filename) opts.filename = filename;
-
-  import './visitor/deps-resolver.dart' show DepsResolver;
 
   try {
     nodes.filename = opts.filename;

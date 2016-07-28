@@ -4,6 +4,7 @@
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:node_shims/js.dart';
+import 'package:stylus_dart/nodes/index.dart' as nodes;
 
 class MemoryCache {
   var limit;

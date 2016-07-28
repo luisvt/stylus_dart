@@ -79,7 +79,7 @@ class Group extends Node {
    * @api public
    */
 
-  clone(parent) {
+  clone([parent]) {
     var clone = new Group();
     clone.lineno = this.lineno;
     clone.column = this.column;
