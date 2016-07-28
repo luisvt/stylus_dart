@@ -1,4 +1,5 @@
-import '../nodes.dart' show nodes;
+import '../nodes/index.dart' as nodes;
+import 'rgba.dart';
 
 /**
  * Return the alpha component of the given `color`,
@@ -21,7 +22,7 @@ import '../nodes.dart' show nodes;
  * @api public
  */
 
-module.exports =  alpha(color, value){
+alpha(color, value){
   color = color.rgba;
   if (value) {
     return rgba(
@@ -32,4 +33,4 @@ module.exports =  alpha(color, value){
     );
   }
   return new nodes.Unit(color.a, '');
-};
+}

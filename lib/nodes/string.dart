@@ -19,8 +19,8 @@ import './node.dart' show Node;
  */
 
 class String {
-	String(val, quote) {
-  Node.call(this);
+	String([val, quote]) {
+//  Node.call(this);
   this.val = val;
   this.string = val;
   this.prefixed = false;

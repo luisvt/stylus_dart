@@ -1,4 +1,6 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../nodes/index.dart' as nodes;
+import 'hsla.dart';
 
 /**
  * Convert the given `color` to an `HSLA` node,
@@ -19,7 +21,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  hsl(hue, saturation, lightness){
+hsl(hue, saturation, lightness){
   if (1 == arguments.length) {
     utils.assertColor(hue, 'color');
     return hue.hsla;
@@ -30,4 +32,4 @@ module.exports =  hsl(hue, saturation, lightness){
       , lightness
       , new nodes.Unit(1));
   }
-};
+}

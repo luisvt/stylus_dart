@@ -1,4 +1,6 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'dart:math' as Math;
+import '../nodes/index.dart' as nodes;
 
 /**
  * Returns the relative luminance of the given `color`,
@@ -20,7 +22,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  luminosity(color){
+luminosity(color){
   utils.assertColor(color);
   color = color.rgba;
    processChannel(channel) {
@@ -34,4 +36,4 @@ module.exports =  luminosity(color){
     + 0.7152 * processChannel(color.g)
     + 0.0722 * processChannel(color.b)
   );
-};
+}

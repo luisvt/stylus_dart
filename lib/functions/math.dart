@@ -1,4 +1,6 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../nodes/index.dart' as nodes;
+import 'dart:math' as Math;
 
 /**
  * Apply Math `fn` to `n`.
@@ -9,7 +11,7 @@ import '../utils.dart' show utils;
  * @api private
  */
 
-module.exports =  math(n, fn){
+math(n, fn){
   utils.assertType(n, 'unit', 'n');
   utils.assertString(fn, 'fn');
   return new nodes.Unit(Math[fn.string](n.val), n.type);

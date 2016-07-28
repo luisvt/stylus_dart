@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../nodes/index.dart' as nodes;
 
 /**
  * Returns a list of units from `start` to `stop`
@@ -12,20 +13,20 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  range(start, stop, step){
+range(start, stop, step){
   utils.assertType(start, 'unit', 'start');
   utils.assertType(stop, 'unit', 'stop');
   if (step) {
     utils.assertType(step, 'unit', 'step');
     if (0 == step.val) {
-      throw new Error('ArgumentError: "step" argument must not be zero');
+      throw new Exception('ArgumentError: "step" argument must not be zero');
     }
   } else {
     step = new nodes.Unit(1);
   }
-  var list = new nodes.Expression;
+  var list = new nodes.Expression();
   for (var i = start.val; i <= stop.val; i += step.val) {
     list.add(new nodes.Unit(i, start.type));
   }
   return list;
-};
+}

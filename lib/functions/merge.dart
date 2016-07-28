@@ -1,4 +1,4 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
 
 /**
  * Merge the object `dest` with the given args.
@@ -9,7 +9,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-(module.exports =  merge(dest){
+merge(dest){
   utils.assertPresent(dest, 'dest');
   dest = utils.unwrap(dest).first;
   utils.assertType(dest, 'object', 'dest');
@@ -21,4 +21,4 @@ import '../utils.dart' show utils;
     utils.merge(dest.vals, utils.unwrap(arguments[i]).first.vals, deep);
   }
   return dest;
-}).raw = true;
+}

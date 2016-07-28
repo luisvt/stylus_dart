@@ -1,4 +1,4 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
 
 /**
  * Like `unquote` but tries to convert
@@ -9,7 +9,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  convert(str){
+convert(str){
   utils.assertString(str, 'str');
   return utils.parseString(str.string);
-};
+}

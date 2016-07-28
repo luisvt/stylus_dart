@@ -1,4 +1,6 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../nodes/index.dart' as nodes;
+import 'package:stylus_dart/functions/image.dart';
 
 /**
  * Return the width and height of the given `img` path.
@@ -30,10 +32,11 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  imageSize(img, ignoreErr) {
+imageSize(img, ignoreErr) {
   utils.assertType(img, 'string', 'img');
+  var _img;
   try {
-    var img = new Image(this, img.string);
+    _img = new Image(this, img.string);
   } catch (err) {
     if (ignoreErr) {
       return [new nodes.Unit(0), new nodes.Unit(0)];
@@ -43,7 +46,7 @@ module.exports =  imageSize(img, ignoreErr) {
   }
 
   // Read size
-  img.open();
+  _img.open();
   var size = img.size();
   img.close();
 
@@ -53,4 +56,4 @@ module.exports =  imageSize(img, ignoreErr) {
   expr.add(new nodes.Unit(size[1], 'px'));
 
   return expr;
-};
+}

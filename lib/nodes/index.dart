@@ -29,7 +29,7 @@ export 'rgba.dart' show RGBA;
 export 'ident.dart' show Ident;
 export 'group.dart' show Group;
 export 'literal.dart' show Literal;
-export 'boolean.dart' show Boolean;
+export 'boolean.dart';
 export 'return.dart' show Return;
 export 'media.dart' show Media;
 export 'query-list.dart' show QueryList;
@@ -57,7 +57,7 @@ export 'supports.dart' show Supports;
  * Singletons.
  */
 
-var $true = new Boolean(true);
-var $false = new Boolean(false);
+var $true = new Boolean$(true);
+var $false = new Boolean$(false);
 var $null = new Null_();
 var lineno, column, filename;

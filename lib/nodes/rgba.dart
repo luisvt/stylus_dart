@@ -1,4 +1,3 @@
-
 /*!
  * Stylus - RGBA
  * Copyright (c) Automattic <developer.wordpress.com>
@@ -10,6 +9,9 @@
  */
 
 import './node.dart' show Node;
+import 'index.dart' as nodes;
+import 'dart:math' as Math;
+import 'package:stylus_dart/nodes/hsla.dart';
 
 /**
  * Initialize a new `RGBA` with the given r,g,b,a component values.
@@ -21,352 +23,363 @@ import './node.dart' show Node;
  * @api public
  */
 
-var RGBA = exports = module.exports =  RGBA(r,g,b,a){
-  Node.call(this);
-  this.r = clamp(r);
-  this.g = clamp(g);
-  this.b = clamp(b);
-  this.a = clampAlpha(a);
-  this.name = '';
-  this.rgba = this;
-};
+class RGBA extends Node {
+  var r, g, b, a, name, rgba;
 
-/**
- * Inherit from `Node.prototype`.
- */
+  var raw;
 
-RGBA.prototype.__proto__ = Node.prototype;
+  RGBA(r, g, b, a) {
+//  Node.call(this);
+    this.r = clamp(r);
+    this.g = clamp(g);
+    this.b = clamp(b);
+    this.a = clampAlpha(a);
+    this.name = '';
+    this.rgba = this;
+  }
 
-/**
- * Return an `RGBA` without clamping values.
- * 
- * @param {Number} r
- * @param {Number} g
- * @param {Number} b
- * @param {Number} a
- * @return {RGBA}
- * @api public
- */
+  /**
+   * Return an `RGBA` without clamping values.
+   *
+   * @param {Number} r
+   * @param {Number} g
+   * @param {Number} b
+   * @param {Number} a
+   * @return {RGBA}
+   * @api public
+   */
 
-RGBA.withoutClamping = (r,g,b,a){
-  var rgba = new RGBA(0,0,0,0);
-  rgba.r = r;
-  rgba.g = g;
-  rgba.b = b;
-  rgba.a = a;
-  return rgba;
-};
+  static withoutClamping(r, g, b, a) {
+    var rgba = new RGBA(0, 0, 0, 0);
+    rgba.r = r;
+    rgba.g = g;
+    rgba.b = b;
+    rgba.a = a;
+    return rgba;
+  }
 
-/**
- * Return a clone of this node.
- * 
- * @return {Node}
- * @api public
- */
+  /**
+   * Return a clone of this node.
+   *
+   * @return {Node}
+   * @api public
+   */
 
-clone() {
-
-  var clone = new RGBA(
-      this.r
+  clone([parent]) {
+    var clone = new RGBA(
+        this.r
     , this.g
     , this.b
     , this.a);
-  clone.raw = this.raw;
-  clone.name = this.name;
-  clone.lineno = this.lineno;
-  clone.column = this.column;
-  clone.filename = this.filename;
-  return clone;
-}
+    clone.raw = this.raw;
+    clone.name = this.name;
+    clone.lineno = this.lineno;
+    clone.column = this.column;
+    clone.filename = this.filename;
+    return clone;
+  }
 
-/**
- * Return a JSON representation of this node.
- *
- * @return {Object}
- * @api public
- */
+  /**
+   * Return a JSON representation of this node.
+   *
+   * @return {Object}
+   * @api public
+   */
 
-toJSON() {
+  toJSON() {
+    return {
+      '__type': 'RGBA',
+      'r': this.r,
+      'g': this.g,
+      'b': this.b,
+      'a': this.a,
+      'raw': this.raw,
+      'name': this.name,
+      'lineno': this.lineno,
+      'column': this.column,
+      'filename': this.filename
+    };
+  }
 
-  return {
-    '__type': 'RGBA',
-    'r': this.r,
-    'g': this.g,
-    'b': this.b,
-    'a': this.a,
-    'raw': this.raw,
-    'name': this.name,
-    'lineno': this.lineno,
-    'column': this.column,
-    'filename': this.filename
-  };
-}
+  /**
+   * Return true.
+   *
+   * @return {Boolean}
+   * @api public
+   */
 
-/**
- * Return true.
- *
- * @return {Boolean}
- * @api public
- */
+  toBoolean() {
+    return nodes.$true;
+  }
 
-toBoolean() {
+  /**
+   * Return `HSLA` representation.
+   *
+   * @return {HSLA}
+   * @api public
+   */
 
-  return nodes.true;
-}
+  get hsla {
+    return HSLA.fromRGBA(this);
+  }
 
-/**
- * Return `HSLA` representation.
- *
- * @return {HSLA}
- * @api public
- */
+  /**
+   * Return hash.
+   *
+   * @return {String}
+   * @api public
+   */
 
-RGBA.prototype.__defineGetter__('hsla', (){
-  return HSLA.fromRGBA(this);
-});
+  get hash {
+    return this.toString();
+  }
 
-/**
- * Return hash.
- *
- * @return {String}
- * @api public
- */
+  /**
+   * Add r,g,b,a to the current component values.
+   *
+   * @param {Number} r
+   * @param {Number} g
+   * @param {Number} b
+   * @param {Number} a
+   * @return {RGBA} new node
+   * @api public
+   */
 
-RGBA.prototype.__defineGetter__('hash', (){
-  return this.toString();
-});
-
-/**
- * Add r,g,b,a to the current component values.
- *
- * @param {Number} r
- * @param {Number} g
- * @param {Number} b
- * @param {Number} a
- * @return {RGBA} new node
- * @api public
- */
-
-add(r,g,b,a) {
-
-  return new RGBA(
-      this.r + r
+  add(r, g, b, a) {
+    return new RGBA(
+        this.r + r
     , this.g + g
     , this.b + b
     , this.a + a);
-}
+  }
 
-/**
- * Subtract r,g,b,a from the current component values.
- *
- * @param {Number} r
- * @param {Number} g
- * @param {Number} b
- * @param {Number} a
- * @return {RGBA} new node
- * @api public
- */
+  /**
+   * Subtract r,g,b,a from the current component values.
+   *
+   * @param {Number} r
+   * @param {Number} g
+   * @param {Number} b
+   * @param {Number} a
+   * @return {RGBA} new node
+   * @api public
+   */
 
-sub(r,g,b,a) {
-
-  return new RGBA(
-      this.r - r
+  sub(r, g, b, a) {
+    return new RGBA(
+        this.r - r
     , this.g - g
     , this.b - b
     , a == 1 ? this.a : this.a - a);
-}
+  }
 
-/**
- * Multiply rgb components by `n`.
- *
- * @param {String} n
- * @return {RGBA} new node
- * @api public
- */
+  /**
+   * Multiply rgb components by `n`.
+   *
+   * @param {String} n
+   * @return {RGBA} new node
+   * @api public
+   */
 
-multiply(n) {
-
-  return new RGBA(
-      this.r * n
+  multiply(n) {
+    return new RGBA(
+        this.r * n
     , this.g * n
     , this.b * n
     , this.a);
-}
+  }
 
-/**
- * Divide rgb components by `n`.
- *
- * @param {String} n
- * @return {RGBA} new node
- * @api public
- */
+  /**
+   * Divide rgb components by `n`.
+   *
+   * @param {String} n
+   * @return {RGBA} new node
+   * @api public
+   */
 
-divide(n) {
-
-  return new RGBA(
-      this.r / n
+  divide(n) {
+    return new RGBA(
+        this.r / n
     , this.g / n
     , this.b / n
     , this.a);
-}
-
-/**
- * Operate on `right` with the given `op`.
- *
- * @param {String} op
- * @param {Node} right
- * @return {Node}
- * @api public
- */
-
-operate(op, right) {
-
-  if ('in' != op) right = right.first
-
-  switch (op) {
-    case 'is a':
-      if ('string' == right.nodeName && 'color' == right.string) {
-        return nodes.true;
-      }
-      break;
-    case '+':
-      switch (right.nodeName) {
-        case 'unit':
-          var n = right.val;
-          switch (right.type) {
-            case '%': return adjust(this, new nodes.String('lightness'), right);
-            case 'deg': return this.hsla.adjustHue(n).rgba;
-            default: return this.add(n,n,n,0);
-          }
-        case 'rgba':
-          return this.add(right.r, right.g, right.b, right.a);
-        case 'hsla':
-          return this.hsla.add(right.h, right.s, right.l);
-      }
-      break;
-    case '-':
-      switch (right.nodeName) {
-        case 'unit':
-          var n = right.val;
-          switch (right.type) {
-            case '%': return adjust(this, new nodes.String('lightness'), new nodes.Unit(-n, '%'));
-            case 'deg': return this.hsla.adjustHue(-n).rgba;
-            default: return this.sub(n,n,n,0);
-          }
-        case 'rgba':
-          return this.sub(right.r, right.g, right.b, right.a);
-        case 'hsla':
-          return this.hsla.sub(right.h, right.s, right.l);
-      }
-      break;
-    case '*':
-      switch (right.nodeName) {
-        case 'unit':
-          return this.multiply(right.val);
-      }
-      break;
-    case '/':
-      switch (right.nodeName) {
-        case 'unit':
-          return this.divide(right.val);
-      }
-      break;
-  }
-  return super.operate( op, right);
-}
-
-/**
- * Return #nnnnnn, #nnn, or rgba(n,n,n,n) string representation of the color.
- *
- * @return {String}
- * @api public
- */
-
-toString() {
-
-   pad(n) {
-    return n < 16
-      ? '0' + n.toString(16)
-      : n.toString(16);
   }
 
-  // special case for transparent named color
-  if ('transparent' == this.name)
-    return this.name;
+  /**
+   * Operate on `right` with the given `op`.
+   *
+   * @param {String} op
+   * @param {Node} right
+   * @return {Node}
+   * @api public
+   */
 
-  if (1 == this.a) {
-    var r = pad(this.r)
-      , g = pad(this.g)
-      , b = pad(this.b);
+  operate(op, right, [v]) {
+    if ('in' != op) right = right.first;
 
-    // Compress
-    if (r[0] == r[1] && g[0] == g[1] && b[0] == b[1]) {
-      return '#' + r[0] + g[0] + b[0];
-    } else {
-      return '#' + r + g + b;
+    switch (op) {
+      case 'is a':
+        if ('string' == right.nodeName && 'color' == right.string) {
+          return nodes.$true;
+        }
+        break;
+      case '+':
+        switch (right.nodeName) {
+          case 'unit':
+            var n = right.val;
+            switch (right.type) {
+              case '%':
+                return adjust(this, new nodes.String('lightness'), right);
+              case 'deg':
+                return this.hsla
+                    .adjustHue(n)
+                    .rgba;
+              default:
+                return this.add(n, n, n, 0);
+            }
+            break;
+          case 'rgba':
+            return this.add(right.r, right.g, right.b, right.a);
+          case 'hsla':
+            return this.hsla.add(right.h, right.s, right.l);
+        }
+        break;
+      case '-':
+        switch (right.nodeName) {
+          case 'unit':
+            var n = right.val;
+            switch (right.type) {
+              case '%':
+                return adjust(this, new nodes.String('lightness'),
+                    new nodes.Unit(-n, '%'));
+              case 'deg':
+                return this.hsla
+                    .adjustHue(-n)
+                    .rgba;
+              default:
+                return this.sub(n, n, n, 0);
+            }
+          case 'rgba':
+            return this.sub(right.r, right.g, right.b, right.a);
+          case 'hsla':
+            return this.hsla.sub(right.h, right.s, right.l);
+        }
+        break;
+      case '*':
+        switch (right.nodeName) {
+          case 'unit':
+            return this.multiply(right.val);
+        }
+        break;
+      case '/':
+        switch (right.nodeName) {
+          case 'unit':
+            return this.divide(right.val);
+        }
+        break;
     }
-  } else {
-    return 'rgba('
-      + this.r + ','
-      + this.g + ','
-      + this.b + ','
-      + (+this.a.toFixed(3)) + ')';
+    return super.operate(op, right);
   }
-}
 
-/**
- * Return a `RGBA` from the given `hsla`.
- *
- * @param {HSLA} hsla
- * @return {RGBA}
- * @api public
- */
+  /**
+   * Return #nnnnnn, #nnn, or rgba(n,n,n,n) string representation of the color.
+   *
+   * @return {String}
+   * @api public
+   */
 
-exports.fromHSLA = (hsla){
-  var h = hsla.h / 360
-    , s = hsla.s / 100
-    , l = hsla.l / 100
-    , a = hsla.a;
+  toString() {
+    pad(n) {
+      return n < 16
+          ? '0' + n.toString(16)
+          : n.toString(16);
+    }
 
-  var m2 = l <= .5 ? l * (s + 1) : l + s - l * s
-    , m1 = l * 2 - m2;
+    // special case for transparent named color
+    if ('transparent' == this.name)
+      return this.name;
 
-  var r = hue(h + 1/3) * 0xff
-    , g = hue(h) * 0xff
-    , b = hue(h - 1/3) * 0xff;
+    if (1 == this.a) {
+      var r = pad(this.r)
+      ,
+          g = pad(this.g)
+      ,
+          b = pad(this.b);
 
-   hue(h) {
-    if (h < 0) ++h;
-    if (h > 1) --h;
-    if (h * 6 < 1) return m1 + (m2 - m1) * h * 6;
-    if (h * 2 < 1) return m2;
-    if (h * 3 < 2) return m1 + (m2 - m1) * (2/3 - h) * 6;
-    return m1;
+      // Compress
+      if (r[0] == r[1] && g[0] == g[1] && b[0] == b[1]) {
+        return '#' + r[0] + g[0] + b[0];
+      } else {
+        return '#' + r + g + b;
+      }
+    } else {
+      return 'rgba('
+          + this.r + ','
+          + this.g + ','
+          + this.b + ','
+          + (this.a.toFixed(3)) + ')';
+    }
   }
-  
-  return new RGBA(r,g,b,a);
-};
 
-/**
- * Clamp `n` >= 0 and <= 255.
- *
- * @param {Number} n
- * @return {Number}
- * @api private
- */
+  /**
+   * Return a `RGBA` from the given `hsla`.
+   *
+   * @param {HSLA} hsla
+   * @return {RGBA}
+   * @api public
+   */
 
- clamp(n) {
-  return Math.max(0, Math.min(n.toFixed(0), 255));
-}
+  static fromHSLA(hsla) {
+    var h = hsla.h / 360
+    ,
+        s = hsla.s / 100
+    ,
+        l = hsla.l / 100
+    ,
+        a = hsla.a;
 
-/**
- * Clamp alpha `n` >= 0 and <= 1.
- *
- * @param {Number} n
- * @return {Number}
- * @api private
- */
+    var m2 = l <= .5 ? l * (s + 1) : l + s - l * s
+    ,
+        m1 = l * 2 - m2;
 
- clampAlpha(n) {
-  return Math.max(0, Math.min(n, 1));
+    var r = hue(h + 1 / 3) * 0xff
+    ,
+        g = hue(h) * 0xff
+    ,
+        b = hue(h - 1 / 3) * 0xff;
+
+    hue(h) {
+      if (h < 0) ++h;
+      if (h > 1) --h;
+      if (h * 6 < 1) return m1 + (m2 - m1) * h * 6;
+      if (h * 2 < 1) return m2;
+      if (h * 3 < 2) return m1 + (m2 - m1) * (2 / 3 - h) * 6;
+      return m1;
+    }
+
+    return new RGBA(r, g, b, a);
+  }
+
+  /**
+   * Clamp `n` >= 0 and <= 255.
+   *
+   * @param {Number} n
+   * @return {Number}
+   * @api private
+   */
+
+  clamp(n) {
+    return Math.max(0, Math.min(n.toFixed(0), 255));
+  }
+
+  /**
+   * Clamp alpha `n` >= 0 and <= 1.
+   *
+   * @param {Number} n
+   * @return {Number}
+   * @api private
+   */
+
+  clampAlpha(n) {
+    return Math.max(0, Math.min(n, 1));
+  }
 }

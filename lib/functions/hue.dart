@@ -1,4 +1,6 @@
-import '../nodes.dart' show nodes;
+import '../nodes/index.dart' as nodes;
+import 'hsla.dart';
+import 'component.dart';
 
 /**
  * Return the hue component of the given `color`,
@@ -18,7 +20,7 @@ import '../nodes.dart' show nodes;
  * @api public
  */
 
-module.exports =  hue(color, value){
+hue(color, value){
   if (value) {
     var hslaColor = color.hsla;
     return hsla(
@@ -26,7 +28,7 @@ module.exports =  hue(color, value){
       new nodes.Unit(hslaColor.s),
       new nodes.Unit(hslaColor.l),
       new nodes.Unit(hslaColor.a)
-    )
+    );
   }
   return component(color, new nodes.String('hue'));
-};
+}

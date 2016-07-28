@@ -1,4 +1,6 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../nodes/index.dart' as nodes;
+import 'package:node_shims/js.dart';
 
 /**
  * Blend the `top` color over the `bottom`
@@ -20,7 +22,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  blend(top, bottom){
+blend(top, bottom){
   // TODO: different blend modes like overlay etc.
   utils.assertColor(top);
   top = top.rgba;
@@ -33,4 +35,4 @@ module.exports =  blend(top, bottom){
     top.g * top.a + bottom.g * (1 - top.a),
     top.b * top.a + bottom.b * (1 - top.a),
     top.a + bottom.a - top.a * bottom.a);
-};
+}

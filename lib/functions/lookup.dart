@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../nodes/index.dart' as nodes;
 
 /**
  * Lookup variable `name` or return Null.
@@ -8,9 +9,9 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  lookup(name){
+lookup(name){
   utils.assertType(name, 'string', 'name');
   var node = this.lookup(name.val);
   if (!node) return nodes.null;
   return this.visit(node);
-};
+}

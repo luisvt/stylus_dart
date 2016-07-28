@@ -1,4 +1,7 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../nodes/index.dart' as nodes;
+import 'dart:convert';
+import 'package:json_object/json_object.dart';
 
 /**
  * Convert a .json file into stylus variables or object.
@@ -33,7 +36,7 @@ import '../utils.dart' show utils;
  * @api public
 */
 
-module.exports = (path, local, namePrefix){
+json(path, local, namePrefix){
   utils.assertString(path, 'path');
 
   // lookup
@@ -44,23 +47,17 @@ module.exports = (path, local, namePrefix){
   if (!found) {
     // optional JSON file
     if (options && options.get('optional').toBoolean().isTrue) {
-      return nodes.null;
+      return nodes.$null;
     }
-    throw new Error('failed to locate .json file ' + path);
+    throw new Exception('failed to locate .json file ' + path);
   }
 
   // read
-  var json = JSON.parse(readFile(found, 'utf8'));
+  var json = JSON.decode(readFile(found, 'utf8'));
 
-  if (options) {
-    return convert(json, options);
-  } else {
-    oldJson.call(this, json, local, namePrefix);
-  }
-
-   convert(obj, options){
+  convert(obj, options){
     var ret = new nodes.Object()
-      , leaveStrings = options.get('leave-strings').toBoolean();
+    , leaveStrings = options.get('leave-strings').toBoolean();
 
     for (var key in obj) {
       var val = obj[key];
@@ -76,7 +73,13 @@ module.exports = (path, local, namePrefix){
     }
     return ret;
   }
-};
+
+  if (options) {
+    return convert(json, options);
+  } else {
+    oldJson(json, local, namePrefix);
+  }
+}
 
 /**
  * Old `json` BIF.
@@ -84,25 +87,22 @@ module.exports = (path, local, namePrefix){
  * @api private
  */
 
- oldJson(json, local, namePrefix){
+oldJson(json, local, namePrefix){
   if (namePrefix) {
     utils.assertString(namePrefix, 'namePrefix');
     namePrefix = namePrefix.val;
   } else {
     namePrefix = '';
   }
-  local = local ? local.toBoolean() : new nodes.Boolean(local);
+  local = local ? local.toBoolean() : new nodes.Boolean$(local);
   var scope = local.isTrue ? this.currentScope : this.global.scope;
 
-  convert(json);
-  return;
-
-   convert(obj, prefix){
+  convert(obj, [prefix]){
     prefix = prefix ? prefix + '-' : '';
     for (var key in obj){
       var val = obj[key];
       var name = prefix + key;
-      if ('object' == typeof val) {
+      if (val is JsonObject) {
         convert(val, name);
       } else {
         val = utils.coerce(val);
@@ -111,4 +111,8 @@ module.exports = (path, local, namePrefix){
       }
     }
   }
-};
+
+  convert(json);
+  return;
+
+}

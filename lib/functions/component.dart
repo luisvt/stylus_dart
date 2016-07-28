@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../nodes/index.dart' as nodes;
 
 /**
  * Color component name map.
@@ -47,13 +48,13 @@ var typeMap = {
  * @api public
  */
 
-module.exports =  component(color, name) {
+component(color, name) {
   utils.assertColor(color, 'color');
   utils.assertString(name, 'name');
-  var name = name.string
+  var _name = name.string
     , unit = unitMap[name]
-    , type = typeMap[name]
-    , name = componentMap[name];
-  if (!name) throw new Error('invalid color component "' + name + '"');
+    , type = typeMap[name];
+  _name = componentMap[name];
+  if (!name) throw new Exception('invalid color component "' + name + '"');
   return new nodes.Unit(color[type][name], unit);
-};
+}

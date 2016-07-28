@@ -10,6 +10,7 @@
  */
 
 import './node.dart' show Node;
+import 'package:node_shims/js.dart';
 
 /**
  * Initialize a new `Boolean` node with the given `val`.
@@ -17,14 +18,21 @@ import './node.dart' show Node;
  * @param {Boolean} val
  * @api public
  */
+var Boolean = new Boolean$._();
+class Boolean$ extends Node {
 
-class Boolean extends Node {
-  Boolean(val) {
-    Node.call(this);
+  Boolean$(val) {
+    this.val = val;
+  }
+
+  Boolean$._();
+
+  call(val) {
+//    Node.call(this);
     if (this.nodeName) {
-      this.val = ! !val;
+      this.val = truthy(val);
     } else {
-      return new Boolean(val);
+      return val;
     }
   }
 

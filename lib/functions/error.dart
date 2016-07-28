@@ -1,4 +1,4 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
 
 /**
  * Throw an error with the given `msg`.
@@ -7,9 +7,9 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  error(msg){
+error(msg) {
   utils.assertType(msg, 'string', 'msg');
-  var err = new Error(msg.val);
+  var err = new Exception(msg.val);
   err.fromStylus = true;
   throw err;
-};
+}

@@ -1,4 +1,5 @@
-import '../nodes.dart' show nodes;
+import '../nodes/index.dart' as nodes;
+import 'package:stylus_dart/functions/rgba.dart';
 
 /**
  * Return the red component of the given `color`,
@@ -18,7 +19,7 @@ import '../nodes.dart' show nodes;
  * @api public
  */
 
-module.exports =  red(color, value){
+red(color, value){
   color = color.rgba;
   if (value) {
     return rgba(
@@ -29,4 +30,4 @@ module.exports =  red(color, value){
     );
   }
   return new nodes.Unit(color.r, '');
-};
+}

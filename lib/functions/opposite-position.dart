@@ -1,4 +1,4 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
 
 /**
  * Return the opposites of the given `positions`.
@@ -13,7 +13,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-(module.exports =  oppositePosition(positions){
+oppositePosition(positions){
   var expr = [];
   utils.unwrap(positions).nodes.forEach((pos, i){
     utils.assertString(pos, 'position ' + i);
@@ -28,4 +28,4 @@ import '../utils.dart' show utils;
     expr.add(new nodes.Literal(pos));
   });
   return expr;
-}).raw = true;
+}

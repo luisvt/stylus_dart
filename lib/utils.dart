@@ -9,7 +9,7 @@
  * Module dependencies.
  */
 
-import './nodes/index.dart';
+import './nodes/index.dart' as nodes;
 import './parser.dart' show Parser;
 import 'package:node_shims/path.dart';
 import 'dart:math' as Math;
@@ -40,7 +40,7 @@ absolute(path){
  * @api private
  */
 
-lookup(path, paths, ignore){
+lookup(path, paths, [ignore]){
   var lookup
     , i = paths.length;
 
@@ -242,7 +242,7 @@ assertString(node, param){
  * @api public
  */
 
-assertColor(node, param){
+assertColor(node, [param]){
   assertPresent(node, param);
   switch (node.nodeName) {
     case 'rgba':
@@ -297,19 +297,19 @@ unwrap(expr){
  * @return {Node}
  * @api public
  */
-coerce(val, raw){
+coerce(val, [raw]){
   switch (typeof val) {
     case 'function':
       return val;
     case 'string':
       return new nodes.String(val);
     case 'boolean':
-      return new nodes.Boolean(val);
+      return new nodes.Boolean$(val);
     case 'number':
       return new nodes.Unit(val);
     default:
-      if (null == val) return nodes.null;
-      if (List.isArray(val)) return coerceArray(val, raw);
+      if (null == val) return nodes.$null;
+      if (val is List) return coerceArray(val, raw);
       if (val.nodeName) return val;
       return coerceObject(val, raw);
   }
@@ -323,7 +323,7 @@ coerce(val, raw){
  * @return {Expression}
  * @api private
  */
-coerceArray(val, raw){
+coerceArray(val, [raw]){
   var expr = new nodes.Expression;
   val.forEach((val){
     expr.add(coerce(val, raw));

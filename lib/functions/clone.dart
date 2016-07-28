@@ -1,4 +1,4 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
 
 /**
  * Return a clone of the given `expr`.
@@ -8,7 +8,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-(module.exports =  clone(expr){
+clone(expr){
   utils.assertPresent(expr, 'expr');
   return expr.clone();
-}).raw = true;
+}

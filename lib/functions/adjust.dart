@@ -1,4 +1,4 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
 
 /**
  * Adjust HSL `color` `prop` by `amount`.
@@ -10,13 +10,13 @@ import '../utils.dart' show utils;
  * @api private
  */
 
-module.exports =  adjust(color, prop, amount){
+adjust(color, prop, amount){
   utils.assertColor(color, 'color');
   utils.assertString(prop, 'prop');
   utils.assertType(amount, 'unit', 'amount');
   var hsl = color.hsla.clone();
   prop = { 'hue': 'h', 'saturation': 's', 'lightness': 'l' }[prop.string];
-  if (!prop) throw new Error('invalid adjustment property');
+  if (!prop) throw new Exception('invalid adjustment property');
   var val = amount.val;
   if ('%' == amount.type){
     val = 'l' == prop && val > 0
@@ -25,4 +25,4 @@ module.exports =  adjust(color, prop, amount){
   }
   hsl[prop] += val;
   return hsl.rgba;
-};
+}

@@ -1,4 +1,5 @@
-import '../nodes.dart' show nodes;
+import '../nodes/index.dart' as nodes;
+import 'package:node_shims/js.dart';
 
 /**
  * Returns the @media string for the current block
@@ -7,11 +8,10 @@ import '../nodes.dart' show nodes;
  * @api public
  */
 
-module.exports =  currentMedia(){
+currentMedia(){
   var self = this;
-  return new nodes.String(or(lookForMedia(this.closestBlock.node), ''));
 
-   lookForMedia(node){
+  lookForMedia(node){
     if ('media' == node.nodeName) {
       node.val = self.visit(node.val);
       return node.toString();
@@ -19,4 +19,6 @@ module.exports =  currentMedia(){
       return lookForMedia(node.block.parent.node);
     }
   }
-};
+  return new nodes.String(or(lookForMedia(this.closestBlock.node), ''));
+
+}

@@ -1,4 +1,6 @@
-import '../nodes.dart' show nodes;
+import '../nodes/index.dart' as nodes;
+import 'package:stylus_dart/functions/hsla.dart';
+import 'package:stylus_dart/functions/component.dart';
 
 /**
  * Return the lightness component of the given `color`,
@@ -18,7 +20,7 @@ import '../nodes.dart' show nodes;
  * @api public
  */
 
-module.exports =  lightness(color, value){
+lightness(color, value){
   if (value) {
     var hslaColor = color.hsla;
     return hsla(
@@ -26,7 +28,7 @@ module.exports =  lightness(color, value){
       new nodes.Unit(hslaColor.s),
       value,
       new nodes.Unit(hslaColor.a)
-    )
+    );
   }
   return component(color, new nodes.String('lightness'));
-};
+}

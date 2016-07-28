@@ -1,4 +1,9 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../nodes/index.dart' as nodes;
+import 'package:node_shims/js.dart';
+import 'blend.dart';
+import 'luminosity.dart';
+import 'dart:math' as Math;
 
 /**
  * Returns the contrast ratio object between `top` and `bottom` colors,
@@ -19,22 +24,25 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  contrast(top, bottom){
+contrast(top, bottom) {
   if ('rgba' != top.nodeName && 'hsla' != top.nodeName) {
-    return new nodes.Literal('contrast(' + (top.isNull ? '' : top.toString()) + ')');
+    return new nodes.Literal(
+        'contrast(' + (top.isNull ? '' : top.toString()) + ')');
   }
   var result = new nodes.Object();
   top = top.rgba;
   bottom = or(bottom, new nodes.RGBA(255, 255, 255, 1));
   utils.assertColor(bottom);
   bottom = bottom.rgba;
-   contrast(top, bottom) {
+  contrast(top, bottom) {
     if (1 > top.a) {
       top = blend(top, bottom);
     }
     var l1 = luminosity(bottom).val + 0.05
-      , l2 = luminosity(top).val + 0.05
-      , ratio = l1 / l2;
+    ,
+        l2 = luminosity(top).val + 0.05
+    ,
+        ratio = l1 / l2;
 
     if (l2 > l1) {
       ratio = 1 / ratio;
@@ -49,17 +57,19 @@ module.exports =  contrast(top, bottom){
     result.set('min', resultRatio);
     result.set('max', resultRatio);
   } else {
-    var onBlack = contrast(top, blend(bottom, new nodes.RGBA(0, 0, 0, 1)))
-      , onWhite = contrast(top, blend(bottom, new nodes.RGBA(255, 255, 255, 1)))
-      , max = Math.max(onBlack, onWhite);
-     processChannel(topChannel, bottomChannel) {
-      return Math.min(Math.max(0, (topChannel - bottomChannel * bottom.a) / (1 - bottom.a)), 255);
+    var onBlack = contrast(top, blend(bottom, new nodes.RGBA(0, 0, 0, 1))),
+        onWhite = contrast(top, blend(bottom, new nodes.RGBA(255, 255, 255, 1))),
+        max = Math.max(onBlack, onWhite);
+    processChannel(topChannel, bottomChannel) {
+      return Math.min(
+          Math.max(0, (topChannel - bottomChannel * bottom.a) / (1 - bottom.a)),
+          255);
     }
     var closest = new nodes.RGBA(
-      processChannel(top.r, bottom.r),
-      processChannel(top.g, bottom.g),
-      processChannel(top.b, bottom.b),
-      1
+        processChannel(top.r, bottom.r),
+        processChannel(top.g, bottom.g),
+        processChannel(top.b, bottom.b),
+        1
     );
     var min = contrast(top, blend(bottom, closest));
 
@@ -69,3 +79,4 @@ module.exports =  contrast(top, bottom){
     result.set('max', new nodes.Unit(max));
   }
   return result;
+}

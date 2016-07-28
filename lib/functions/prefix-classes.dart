@@ -1,4 +1,4 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
 
 /**
  * Prefix css classes in a block
@@ -9,7 +9,7 @@ import '../utils.dart' show utils;
  * @api private
  */
 
-module.exports =  prefixClasses(prefix, block){
+prefixClasses(prefix, block){
   utils.assertString(prefix, 'prefix');
   utils.assertType(block, 'block', 'block');
 

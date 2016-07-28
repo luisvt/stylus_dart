@@ -1,4 +1,4 @@
-import '../nodes.dart' show nodes;
+import '../nodes/index.dart' as nodes;
 
 /**
  * Get Math `prop`.
@@ -8,6 +8,6 @@ import '../nodes.dart' show nodes;
  * @api private
  */
 
-module.exports =  math(prop){
+mathProp(prop){
   return new nodes.Unit(Math[prop.string]);
-};
+}

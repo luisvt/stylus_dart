@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../nodes/index.dart' as nodes;
 
 /**
  * Return the separator of the given `list`.
@@ -18,7 +19,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-(module.exports =  listSeparator(list){
+listSeparator(list){
   list = utils.unwrap(list);
   return new nodes.String(list.isList ? ',' : ' ');
-}).raw = true;
+}

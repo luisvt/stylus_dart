@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../nodes/index.dart' as nodes;
 
 /**
  * Set a variable `name` on current scope.
@@ -9,7 +10,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  define(name, expr, global){
+define(name, expr, global){
   utils.assertType(name, 'string', 'name');
   expr = utils.unwrap(expr);
   var scope = this.currentScope;
@@ -18,5 +19,5 @@ module.exports =  define(name, expr, global){
   }
   var node = new nodes.Ident(name.val, expr);
   scope.add(node);
-  return nodes.null;
+  return nodes.$null;
 };

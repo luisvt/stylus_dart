@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'package:node_shims/path.dart' as path;
 
 /**
  * Return the dirname of `path`.
@@ -8,7 +9,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  dirname(p){
+dirname(p){
   utils.assertString(p, 'path');
-  return path.dirname(p.val).replace(new RegExp(r'\\/'), '/');
-};
+  return path.dirname(p.val).replaceAll(new RegExp(r'\\/'), '/');
+}

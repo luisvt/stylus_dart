@@ -10,7 +10,9 @@
  * Module dependencies.
  */
 
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'package:node_shims/js.dart';
+import 'dart:math' as Math;
 
 /**
  * Initialize a new `Image` with the given `ctx` and `path.
@@ -21,12 +23,22 @@ import '../utils.dart' show utils;
  */
 
 class Image {
+  var ctx;
+
+  var path;
+
+  var fd;
+
+  var length;
+
+  var extname;
+
 	Image(ctx, path) {
   this.ctx = ctx;
   this.path = utils.lookup(path, ctx.paths);
-  if (!this.path) throw new Error('failed to locate file ' + path);
+  if (!this.path) throw new Exception('failed to locate file ' + path);
 	}
-}
+
 
 /**
  * Open the image for reading.
@@ -99,7 +111,7 @@ size() {
     , width
     , height
     , buf
-    ,fset
+    , offset
     , blockSize
     , parser;
 
@@ -157,8 +169,8 @@ size() {
       break;
   }
 
-  if ('number' != typeof width) throw new Error('failed to find width of "' + this.path + '"');
-  if ('number' != typeof height) throw new Error('failed to find height of "' + this.path + '"');
+  if (width is! num) throw new Exception('failed to find width of "' + this.path + '"');
+  if (height is! num) throw new Exception('failed to find height of "' + this.path + '"');
 
   return [width, height];
 }

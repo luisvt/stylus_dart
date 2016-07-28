@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+
 
 var VALID_FLAGS = 'igm';
 
@@ -23,14 +24,14 @@ var VALID_FLAGS = 'igm';
  * @api public
  */
 
-module.exports =  match(pattern, val, flags){
+match(pattern, val, flags){
   utils.assertType(pattern, 'string', 'pattern');
   utils.assertString(val, 'val');
   var re = new RegExp(pattern.val, validateFlags(flags) ? flags.string : '');
   return val.string.match(re);
-};
+}
 
- validateFlags(flags) {
+validateFlags(flags) {
   flags = flags && flags.string;
 
   if (flags) {

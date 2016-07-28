@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import 'package:node_shims/path.dart' as path;
 
 /**
  * Return the extname of `path`.
@@ -8,7 +9,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  extname(p){
+extname(p){
   utils.assertString(p, 'path');
   return path.extname(p.val);
-};
+}

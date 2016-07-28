@@ -1,4 +1,6 @@
 import '../utils.dart' as utils;
+import 'package:node_shims/js.dart';
+import '../nodes/index.dart' as nodes;
 
 /**
  * Add property `name` with the given `expr`
@@ -10,7 +12,7 @@ import '../utils.dart' as utils;
  * @api public
  */
 
-(module.exports =  addProperty(name, expr){
+addProperty(name, expr){
   utils.assertType(name, 'expression', 'name');
   name = utils.unwrap(name).first;
   utils.assertString(name, 'name');
@@ -25,4 +27,4 @@ import '../utils.dart' as utils;
   block.nodes = head.concat(tail);
 
   return prop;
-}).raw = true;
+}

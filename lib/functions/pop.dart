@@ -1,4 +1,4 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
 
 /**
  * Pop a value from `expr`.
@@ -8,7 +8,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-(module.exports =  pop(expr) {
+pop(expr) {
   expr = utils.unwrap(expr);
   return pop(expr.nodes);
-}).raw = true;
+}

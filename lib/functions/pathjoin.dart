@@ -1,4 +1,5 @@
-import 'package:path.dart' show path;
+import 'package:node_shims/js.dart';
+import 'package:node_shims/path.dart' as path;
 
 /**
  * Peform a path join.
@@ -8,9 +9,9 @@ import 'package:path.dart' show path;
  * @api public
  */
 
-(module.exports =  pathjoin(){
-  var paths = super.slice()[].slice.call(arguments).map((path){
+pathjoin([arguments]){
+  var paths = slice(arguments, 0).map((path){
     return path.first.string;
   });
-  return path.join.apply(null, paths).replace(new RegExp(r'\\/'), '/');
-}).raw = true;
+  return path.join(paths).replaceAll(new RegExp(r'\\/'), '/');
+}

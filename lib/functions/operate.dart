@@ -1,4 +1,4 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
 
 /**
  * Perform `op` on the `left` and `right` operands.
@@ -10,9 +10,9 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  operate(op, left, right){
+operate(op, left, right){
   utils.assertType(op, 'string', 'op');
   utils.assertPresent(left, 'left');
   utils.assertPresent(right, 'right');
   return left.operate(op.val, right);
-};
+}

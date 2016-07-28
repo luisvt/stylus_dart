@@ -1,4 +1,4 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
 
 /**
  * Return length of the given `expr`.
@@ -8,7 +8,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-(module.exports =  length(expr){
+length(expr){
   if (expr) {
     if (expr.nodes) {
       var nodes = utils.unwrap(expr).nodes;
@@ -22,4 +22,4 @@ import '../utils.dart' show utils;
     }
   }
   return 0;
-}).raw = true;
+}

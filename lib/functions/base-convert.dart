@@ -1,4 +1,6 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../nodes/index.dart' as nodes;
+import 'package:node_shims/js.dart';
 
 /**
  * Return a `Literal` `num` converted to the provided `base`, padded to `width`
@@ -11,15 +13,17 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-(module.exports = (num, base, width) {
+baseConvert(num, base, width) {
   utils.assertPresent(num, 'number');
   utils.assertPresent(base, 'base');
   num = utils.unwrap(num).nodes[0].val;
   base = utils.unwrap(base).nodes[0].val;
-  width = (width && utils.unwrap(width).nodes[0].val) || 2;
-  var result = Number(num).toString(base);
+  width = or((width && utils
+      .unwrap(width)
+      .nodes[0].val), 2);
+  var result = num.toString(base);
   while (result.length < width) {
     result = '0' + result;
   }
   return new nodes.Literal(result);
-}).raw = true;
+}

@@ -17,99 +17,95 @@ import './node.dart' show Node;
  * @api public
  */
 
-class Group {
-	Group() {
+class Group extends Node {
+  List nodes;
+
+  List extends_;
+
+  Group() {
 //  Node.call(this);
-  this.nodes = [];
-  this.extends = [];
-	}
-}
-
-/**
- * Inherit from `Node.prototype`.
- */
-
-Group.prototype.__proto__ = Node.prototype;
-
-/**
- * Push the given `selector` node.
- *
- * @param {Selector} selector
- * @api public
- */
-
-push(selector) {
-
-  this.nodes.add(selector);
-}
-
-/**
- * Return this set's `Block`.
- */
-
-Group.prototype.__defineGetter__('block', (){
-  return this.nodes[0].block;
-});
-
-/**
- * Assign `block` to each selector in this set.
- *
- * @param {Block} block
- * @api public
- */
-
-Group.prototype.__defineSetter__('block', (block){
-  for (var i = 0, len = this.nodes.length; i < len; ++i) {
-    this.nodes[i].block = block;
+    this.nodes = [];
+    this.extends_ = [];
   }
-});
 
-/**
- * Check if this set has only placeholders.
- *
- * @return {Boolean}
- * @api public
- */
+  /**
+   * Push the given `selector` node.
+   *
+   * @param {Selector} selector
+   * @api public
+   */
 
-Group.prototype.__defineGetter__('hasOnlyPlaceholders', (){
-  return this.nodes.every((selector) { return selector.isPlaceholder; });
-});
+  push(selector) {
+    this.nodes.add(selector);
+  }
 
-/**
- * Return a clone of this node.
- * 
- * @return {Node}
- * @api public
- */
+  /**
+   * Return this set's `Block`.
+   */
 
-clone(parent) {
+  get block {
+    return this.nodes[0].block;
+  }
 
-  var clone = new Group;
-  clone.lineno = this.lineno;
-  clone.column = this.column;
-  this.nodes.forEach((node){
-    clone.add(node.clone(parent, clone));
-  });
-  clone.filename = this.filename;
-  clone.block = this.block.clone(parent, clone);
-  return clone;
-}
+  /**
+   * Assign `block` to each selector in this set.
+   *
+   * @param {Block} block
+   * @api public
+   */
+  set block(block) {
+    for (var i = 0, len = this.nodes.length; i < len; ++i) {
+      this.nodes[i].block = block;
+    }
+  }
 
-/**
- * Return a JSON representation of this node.
- *
- * @return {Object}
- * @api public
- */
+  /**
+   * Check if this set has only placeholders.
+   *
+   * @return {Boolean}
+   * @api public
+   */
 
-toJSON() {
+  get hasOnlyPlaceholders {
+    return this.nodes.every((selector) {
+      return selector.isPlaceholder;
+    });
+  }
 
-  return {
-    '__type': 'Group',
-    'nodes': this.nodes,
-    'block': this.block,
-    'lineno': this.lineno,
-    'column': this.column,
-    'filename': this.filename
-  };
+  /**
+   * Return a clone of this node.
+   *
+   * @return {Node}
+   * @api public
+   */
+
+  clone(parent) {
+    var clone = new Group();
+    clone.lineno = this.lineno;
+    clone.column = this.column;
+    this.nodes.forEach((node) {
+      clone.add(node.clone(parent, clone));
+    });
+    clone.filename = this.filename;
+    clone.block = this.block.clone(parent, clone);
+    return clone;
+  }
+
+  /**
+   * Return a JSON representation of this node.
+   *
+   * @return {Object}
+   * @api public
+   */
+
+  toJSON() {
+    return {
+      '__type': 'Group',
+      'nodes': this.nodes,
+      'block': this.block,
+      'lineno': this.lineno,
+      'column': this.column,
+      'filename': this.filename
+    };
+  }
 }

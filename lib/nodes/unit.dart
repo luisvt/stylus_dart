@@ -36,8 +36,8 @@ var FACTOR_TABLE = {
  */
 
 class Unit {
-	Unit(val, type) {
-  Node.call(this);
+	Unit([val, type]) {
+//  Node.call(this);
   this.val = val;
   this.type = type;
 	}

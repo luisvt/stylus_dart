@@ -1,4 +1,5 @@
-import '../utils.dart' show utils;
+import '../utils.dart' as utils;
+import '../nodes/index.dart' as nodes;
 
 /**
  * Convert the given `color` to an `HSLA` node,
@@ -20,7 +21,7 @@ import '../utils.dart' show utils;
  * @api public
  */
 
-module.exports =  hsla(hue, saturation, lightness, alpha){
+hsla(hue, saturation, lightness, alpha){
   switch (arguments.length) {
     case 1:
       utils.assertColor(hue);
@@ -49,4 +50,4 @@ module.exports =  hsla(hue, saturation, lightness, alpha){
         , lightness.val
         , alpha.val);
   }
-};
+}
